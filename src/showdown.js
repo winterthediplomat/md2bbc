@@ -772,7 +772,7 @@ var _buildURL = function(url, text){
 	console.log("[_buildURL] url: "+url+" text: "+text);
 	if([wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/)||[])
 		if(gistId) return "[gist]"+gistId+"[/gist]";
-	if([wholeMatch, long_youtube, short_youtube videoID] = url.match(/(?:https?:\/\/)?(?:www\.)?(?:(youtube\.com)\/watch(?:\?v=|\?.+?&v=)|(youtu\.be)\/)([a-zA-Z0-9_-~]+)/)||[]){
+	if([wholeMatch, long_youtube, short_youtube, videoID] = url.match(/(?:https?:\/\/)?(?:www\.)?(?:(youtube\.com)\/watch(?:\?v=|\?.+?&v=)|(youtu\.be)\/)([a-zA-Z0-9_-~]+)/)||[]){
 	    console.log("[_buildURL . youtube] "+wholeMatch+" - "+long_youtube+" - "+videoID);
 	    if(long_youtube)
 	    	return "[youtube]$1[/youtube]".replace(/\$1/g, wholeMatch);
