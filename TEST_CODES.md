@@ -16,18 +16,18 @@ print Dumper($val);
 print "do you wanna use ` ?"; 
 ```
 
-[small]as nicola's penis[/small]
+[small]lololol[/small]
 
 wtf -> lolpls
 
 
-> nicola pls don't
-talk shit
+> niconiconii pls
+stop saying niconiconii
 
-try to recognize the quote ![it should be "alt"](http://31.media.tumblr.com/61c8bc1f8be79bf214c54688c7ed4377/tumblr_n4rhtwz7Bn1s825jqo1_1280.jpg)
+awful drawing here! ![it should be "alt"](http://31.media.tumblr.com/61c8bc1f8be79bf214c54688c7ed4377/tumblr_n4rhtwz7Bn1s825jqo1_1280.jpg)
 
 > xp is
-> for fags
+> for old users
 > did you know that?
 
 lol
@@ -36,4 +36,4 @@ lol
 
 @alfateam123 #Nerdzilla
 
-~~tu non hai visto niente~~
+~~you didn't see a thing~~
