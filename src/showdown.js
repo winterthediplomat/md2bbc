@@ -1575,55 +1575,9 @@ if (typeof define === 'function' && define.amd) {
 
 //
 // Showdown usage:
-// //
-    var shitconvert=function(){
-    	 document.getElementById("bb").value=converter.makeHtml(document.getElementById('md').value);
-      return true;
-    }
-
-   //var text = "Markdown *rocks*. `int x=3;` [nerdz](http://nerdz.eu) is _awesome_! ![test](http://nigg.az/screens/helltilt.png) ";
 //
-   var converter = new Showdown.converter();
-   //var html = converter.makeHtml(text);
-//
-   //alert(html);
-var test = function(){
-    var testCrumbs = ["Markdown **rocks**. It doesn't _suck_, it's legen*waitforit*dary * _ \\*understood?\\*",
-                     "`int x=3;`",
-                     "```perl\nuse Data::Dumper;\nprint Dumper($val);```",
-                     "```c++\nint x=3;\n```",
-                     "[nerdz](http://nerdz.eu) is _awesome_!",
-                     "[](http://nerdz.eu) has no title!",
-                     "![test](http://nigg.az/screens/helltilt.png)",
-                     "<3 & troll :D",
-                     "[wiki=it]Linux[/it]",
-                     ">test \npls",
-                     "<http://nerdz.eu>"
-                     ];
-    var resCrumbs = ["Markdown [b]rocks[/b]. It doesn't [cur]suck[/cur], it's legen[cur]waitforit[/cur]dary * _ *understood?*",
-                     "[code]int x=3;[/code]",
-                     "[code=perl]\nuse Data::Dumper;\nprint Dumper($val);\n[/code]",
-                     "[code=c++]\nint x=3;\n[/code]",
-                     "[url=http://nerdz.eu]nerdz[/url] is [cur]awesome[/cur]!",
-                     "[url]http://nerdz.eu[/url] has no title!",
-                     "[img]http://nigg.az/screens/helltilt.png[/img]",
-                     "<3 & troll :D",
-                     "[wiki=it]Linux[/it]",
-                     "[quote]test \npls[/quote]",
-                     "[url]http://nerdz.eu[/url]"
-                     ];
-    document.write('<table border=1>');
-    document.write("<tr align='center'><td>Markdown</td><td>Generated BBCode</td><td>Expected BBCode</td></tr>");
-    for(i=0; i<testCrumbs.length; i++)
-    {
-    	converted = converter.makeHtml(testCrumbs[i]).slice(3, -4); //remove trailing <p> and </p>
-    	converted=converted.replace(/\n/g, "<br/>");
-    	document.write('<tr><td>'+testCrumbs[i].replace(/\n/g, "<br/>")+"</td><td>"+converted+"</td><td>"+resCrumbs[i].replace(/\n/g, "<br/>")+"</td></tr>");
-    }
-    document.write("</table>");
-};
-    document.write("<table><tr><td><textarea id='md'></textarea></td><td><textarea id='bb' ></textarea></td></tr></table><input type='button' value='convert!' onclick='return shitconvert();' /><input type='button' value='test!' onclick='return test();' />")
-//
-// Note: move the sample code to the bottom of this
-// file before uncommenting it.
-//
+var shitconvert=function(){
+	var converter = new Showdown.converter();
+    document.getElementById("bb").value=converter.makeHtml(document.getElementById('md').value);
+    return true;
+}

@@ -5,4 +5,35 @@
 Let's see if I screwed up.
 </body>
   <script src='./src/showdown.js'></script>
+  <table>
+    <tr>
+      <td><textarea id='md'></textarea></td>
+      <td><textarea id='bb' ></textarea></td>
+      <td>
+        <table>
+        <tr>
+        	<td>[user]username[/user]</td><td>@username</td><tr>
+        	<td>[project]project[/project]</td><td>#project</td><tr>
+        	<td>[url]http://r.usr.sh/[/url]</td><td>&lt;http://r.usr.sh/&gt;</td><tr>
+        	<td>[url=http://r.usr.sh/]CLICK MEH![/url]</td><td>[CLICK MEH!](http://r.usr.sh)</td><tr>
+        	<td>[img]http://x2.fjcdn.com/comments/excitement+intensifies+_79cccf3c87048a472afb5e2de9c3bba8.jpg</td><td>![alt text](http://x2.fjcdn.com/comments/excitement+intensifies+_79cccf3c87048a472afb5e2de9c3bba8.jpg)</td><tr>
+        	<td>[b]strong text[/b]</td><td>**strong text**</td><tr>
+        	<td>[b]strong text[/b]</td><td>__strong text__</td><tr>
+        	<td>[cur]italic text[/cur]</td><td>*italic text*</td><tr>
+        	<td>[cur]italic text[/cur]</td><td>_italic text_</td><tr>
+        	<td>[del]strikethrough[/del]</td><td>~~strikethrough~~</td><tr>
+        	<td>[hr]</td><td>--- (with at least one \n before)</td><tr>
+        	<td>[code=language]code[/code]</td><td>```code<br />code<br />```</td><tr>
+            <td>[gist]gistId[/gist]</td><td>&lt;gist url&gt;</td><tr>
+            <td>[youtube]https://www.youtube.com/watch?v=_ynuMmB91qM[/gist]</td><td>&lt;https://www.youtube.com/watch?v=_ynuMmB91qM&gt;</td><tr>
+            <td>[yt]http://youtu.be/_ynuMmB91qM[/yt]</td><td>&lt;http://youtu.be/_ynuMmB91qM&gt;</td><tr>
+            <td>[wiki=en]Argument[/wiki]</td><td>&lt;http://wikipedia.org/wiki/Argument&gt;</td><tr>
+        	<td>[quote]Citation[/quote]</td><td>&gt;Citation</td><tr>
+        	<td>[list][*] 1 [*] 2 [/list]</td><td>* 1<br />*2</td><tr>
+        </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <input type='button' value='convert!' onclick='return shitconvert();' />
 </html>
