@@ -4,37 +4,53 @@
 <body>
 Markdown to BBCode converter
 </body>
-  <script src='./src/showdown.js'></script>
+  <script src='./src/showdown.js'></script><br/>
+  <a href='SYNTAX.md'>Syntax reference (examples)</a>
   <table>
     <tr>
-      <td><textarea id='md'></textarea></td>
-      <td><textarea id='bb' ></textarea></td>
-      <td>
-        <table>
-        <tr>
-          <td><strong>RESULT</strong></td><td><strong>MARKDOWN</strong></td><tr>
-        	<td>[user]username[/user]</td><td>@username</td><tr>
-        	<td>[project]project[/project]</td><td>#project</td><tr>
-        	<td>[url]http://r.usr.sh/[/url]</td><td>&lt;http://r.usr.sh/&gt;</td><tr>
-        	<td>[url=http://r.usr.sh/]CLICK MEH![/url]</td><td>[CLICK MEH!](http://r.usr.sh)</td><tr>
-        	<td>[img]http://x2.fjcdn.com/comments/excitement+intensifies+_79cccf3c87048a472afb5e2de9c3bba8.jpg[/img]</td><td>![alt text](http://x2.fjcdn.com/comments/excitement+intensifies+_79cccf3c87048a472afb5e2de9c3bba8.jpg)</td><tr>
-        	<td>[b]strong text[/b]</td><td>**strong text**</td><tr>
-        	<td>[b]strong text[/b]</td><td>__strong text__</td><tr>
-        	<td>[cur]italic text[/cur]</td><td>*italic text*</td><tr>
-        	<td>[cur]italic text[/cur]</td><td>_italic text_</td><tr>
-        	<td>[del]strikethrough[/del]</td><td>~~strikethrough~~</td><tr>
-        	<td>[hr]</td><td>--- (with at least one \n before)</td><tr>
-        	<td>[code=language]code[/code]</td><td>```code<br />code<br />```</td><tr>
-            <td>[gist]gistId[/gist]</td><td>&lt;gist url&gt;</td><tr>
-            <td>[youtube]https://www.youtube.com/watch?v=_ynuMmB91qM[/gist]</td><td>&lt;https://www.youtube.com/watch?v=_ynuMmB91qM&gt;</td><tr>
-            <td>[yt]http://youtu.be/_ynuMmB91qM[/yt]</td><td>&lt;http://youtu.be/_ynuMmB91qM&gt;</td><tr>
-            <td>[wiki=en]Argument[/wiki]</td><td>&lt;http://en.wikipedia.org/wiki/Argument&gt;</td><tr>
-        	<td>[quote]Citation[/quote]</td><td>&gt;Citation</td><tr>
-        	<td>[list]<br/>[*] 1<br/> [*] 2 <br/>[/list]</td><td>* 1<br />*2</td><tr>
-        </tr>
-        </table>
-      </td>
+      <td><textarea id='md' rows='30' cols='80'>
+      <http://en.wikipedia.org/wiki/SECD_abstract_machine>
+
+**WAHT IZ LOVE?** _baby don't hurt me! don't hurt me! no more_
+<http://www.youtube.com/watch?v=r4qmUpAE9o8>
+
+---
+
+* Asagi
+* Charlotte 
+* Tsurugi
+
+
+```perl
+use Data::Dumper;
+print Dumper($val);
+print "do you wanna use ` ?"; 
+```
+
+[small]lololol[/small]
+
+wtf -> lolpls
+
+
+> niconiconii pls
+stop saying niconiconii
+
+awful drawing here! ![it should be "alt"](http://31.media.tumblr.com/61c8bc1f8be79bf214c54688c7ed4377/tumblr_n4rhtwz7Bn1s825jqo1_1280.jpg)
+
+> xp is
+> for old users
+> did you know that?
+
+lol
+
+<https://gist.github.com/alfateam123/7cc354929eb3d8817857>
+
+@alfateam123 #Nerdzilla
+
+~~you didn't see a thing~~</textarea></td>
+      <td><textarea id='bb' rows='30' cols='80'></textarea></td>
     </tr>
   </table>
   <input type='button' value='convert!' onclick='return shitconvert();' />
+  <script>shitconvert();</script>
 </html>
