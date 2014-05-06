@@ -99,6 +99,8 @@ Showdown.converter = function(converter_options) {
 // Globals:
 //
 
+//var converter_options = converter_options;
+
 // Global hashes, used by various utility routines
 var g_urls;
 var g_titles;
@@ -110,78 +112,78 @@ var g_list_level = 0;
 
 // Global extensions
 var g_lang_extensions = [
-    // @users
-    {   
-    	type: 'lang',
-        regex: '\\B(\\\\)?@([\\S]+)\\b',
-        replace: function(match, leadingSlash, username) {
-            // Check if we matched the leading \ and return nothing changed if so
-            if (leadingSlash === '\\')
-                return match;
-            else
-                return "[$1](https://nerdz.eu/$1.)".replace(/\$1/g, username); // '<a href="http://twitter.com/' + username + '">@' + username + '</a>';/
-         }
-    },
-    // #projects
-    {
-    	type: "lang",
-    	regex: '\\B(\\\\)?#([\\S]+)\\b',
-    	replace: function(match, leadingSlash, projectname) {
-    		if(leadingSlash === '\\')
-    			return match;
-    		else
-    			return "[prj](https://nerdz.eu/prj:)".replace(/prj/g, projectname);
-    	}
-    },
-    // ~~del~~
-    {
-    	type: "lang",
-    	regex: '~T~T(.+)~T~T', //blame /~/g -> "~T" replacement
-    	replace: function(match, /*leadingSlash, */strikeThroughText) {
-    			return "[del]text[/del]".replace("text", strikeThroughText);
-    	}
-    },
-    // escaped @s
-    {
-    	type: 'lang',
-    	regex: '\\\\@',
-        replace: '@'
-    }
+	// @users
+	{   
+		type: 'lang',
+		regex: '\\B(\\\\)?@([\\S]+)\\b',
+		replace: function(match, leadingSlash, username) {
+			// Check if we matched the leading \ and return nothing changed if so
+			if (leadingSlash === '\\')
+				return match;
+			else
+				return "[$1](https://nerdz.eu/$1.)".replace(/\$1/g, username); // '<a href="http://twitter.com/' + username + '">@' + username + '</a>';/
+		 }
+	},
+	// #projects
+	{
+		type: "lang",
+		regex: '\\B(\\\\)?#([\\S]+)\\b',
+		replace: function(match, leadingSlash, projectname) {
+			if(leadingSlash === '\\')
+				return match;
+			else
+				return "[prj](https://nerdz.eu/prj:)".replace(/prj/g, projectname);
+		}
+	},
+	// ~~del~~
+	{
+		type: "lang",
+		regex: '~T~T(.+)~T~T', //blame /~/g -> "~T" replacement
+		replace: function(match, /*leadingSlash, */strikeThroughText) {
+				return "[del]text[/del]".replace("text", strikeThroughText);
+		}
+	},
+	// escaped @s
+	{
+		type: 'lang',
+		regex: '\\\\@',
+		replace: '@'
+	}
 
 ];
 
 var g_output_modifiers = [
-    //<hr> -> [hr]
-    {   
-    	type: 'lang',
-        regex: "\<hr \/\>",
-        replace: function(match) {
-        	return "[hr]";
-        }
-    },
-    //removing <p> and </p>
-    {   
-    	type: 'lang',
-        regex: "\<\/?p\>",
-        replace: function(match) {
-        	return "";
-        }
-    },
-    //setting &gt; and &lt; as > and <
-    {
-    	type: "lang",
-    	regex: "&gt;",
-    	replace: function(match){
-    		return ">";
-    	}
-    },
-    {
-    	type: "lang",
-    	regex: "&lt;",
-    	replace: function(match){
-    		return "<";
-    	}
-    },
+	//<hr> -> [hr]
+	{   
+		type: 'lang',
+		regex: "\<hr \/\>",
+		replace: function(match) {
+			return "[hr]";
+		}
+	},
+	//removing <p> and </p>
+	{   
+		type: 'lang',
+		regex: "\<\/?p\>",
+		replace: function(match) {
+			return "";
+		}
+	},
+	//setting &gt; and &lt; as > and <
+	{
+		type: "lang",
+		regex: "&gt;",
+		replace: function(match){
+			return ">";
+		}
+	},
+	{
+		type: "lang",
+		regex: "&lt;",
+		replace: function(match){
+			return "<";
+		}
+	},
 ];
 
 
@@ -741,9 +743,9 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
 var _DoAutoLinks = function(text) {
 
 	text = text.replace(/<((https?|ftp|dict):[^'">\s]+)>/gi,
-		                //original: "<a href=\"$1\">$1</a>");
-                        //before unification of link generation: "[url]$1[/url]");
-                        function(wholestring, url){ return _buildURL(url, "")});
+						//original: "<a href=\"$1\">$1</a>");
+						//before unification of link generation: "[url]$1[/url]");
+						function(wholestring, url){ return _buildURL(url, "")});
 
 	// Email addresses: <address@domain.foo>
 
@@ -773,11 +775,11 @@ var _buildURL = function(url, text){
 	if([wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/)||[])
 		if(gistId) return "[gist]"+gistId+"[/gist]";
 	if([wholeMatch, long_youtube, short_youtube, videoID] = url.match(/(?:https?:\/\/)?(?:www\.)?(?:(youtube\.com)\/watch(?:\?v=|\?.+?&v=)|(youtu\.be)\/)([a-zA-Z0-9_-~]+)/)||[]){
-	    console.log("[_buildURL . youtube] "+wholeMatch+" - "+long_youtube+" - "+videoID);
-	    if(long_youtube)
-	    	return "[youtube]$1[/youtube]".replace(/\$1/g, wholeMatch);
-	    else if(short_youtube)
-	    	return "[yt]$1[/yt]".replace(/\$1/g, wholeMatch);
+		console.log("[_buildURL . youtube] "+wholeMatch+" - "+long_youtube+" - "+videoID);
+		if(long_youtube)
+			return "[youtube]$1[/youtube]".replace(/\$1/g, wholeMatch);
+		else if(short_youtube)
+			return "[yt]$1[/yt]".replace(/\$1/g, wholeMatch);
 	}
 	if([wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/)||[])
 		if (lang) return "[wiki=$1]$2[/wiki]".replace(/\$1/g, lang).replace(/\$2/g, argument);
@@ -1281,13 +1283,13 @@ var _DoItalicsAndBold = function(text) {
 	console.log("[_DoItalicsAndBold]: text="+text);
 	text = text.replace(/(\*\*|__)(?=\S)([^\r]*?\S[*_]*)\1/g,
 		//"<strong>$2</strong>");
-        "[b]$2[/b]");
+		"[b]$2[/b]");
 
 	text = text.replace(///(\*|_)(?=\S)([^\r]*?\S)\1/g,
 		//this change may cause several problems. beware.
 		/(\*|_)(?=\S)([^\]\r]*?\S)\1/g, //now it shouldn't touch [*], aka lists.
 		//"<em>$2</em>");
-        "[cur]$2[/cur]");
+		"[cur]$2[/cur]");
 
 	return text;
 }
@@ -1312,9 +1314,26 @@ var _DoBlockQuotes = function(text) {
 		function(wholeMatch,m1) {
 			var bq = m1;
 
+			//alfateam123/md2bbc/issues/2
+			var multiline_triggered = false;
+			var quoted_lines = [];
+			if(converter_options && converter_options.multiline_quoting == true){
+				//retrieving the indexes of lines starting with >
+				quoted_lines = bq.split("\n").map(
+						function(line, index){return (line.match(/^\>/))?index:-1}
+					).filter(function(line, index){return index!=-1;});
+				//checking if there are at least two consecutive lines starting with >.
+				//if so, trigger 4chan-style quoting 
+				multiline_triggered = (function(array){
+					if(array.length < 2) return false;
+					return (array[0]==0 && array[1]==1);
+				})(quoted_lines);
+				//console.log("[_DoBlockQuotes] quoted_lines: ", quoted_lines);
+				//console.log("[_DoBlockQuotes] multiline_triggered: ", multiline_triggered);
+			}
+
 			// attacklab: hack around Konqueror 3.5.4 bug:
 			// "----------bug".replace(/^-/g,"") == "bug"
-
 			bq = bq.replace(/^[ \t]*>[ \t]?/gm,"~0");	// trim one level of quoting
 
 			// attacklab: clean up hack
@@ -1334,11 +1353,42 @@ var _DoBlockQuotes = function(text) {
 					pre = pre.replace(/~0/g,"");
 					return pre;
 				});
-
-			//return hashBlock("<blockquote>\n" + bq + "\n</blockquote>");
-			bq=bq.split("\n").map(function(line){ return line.replace(/^ +/g, ""); }).join("\n"); //<alchimist> l'unica roba sarebbe levare gli spazi che ci sono all'inizio di ogni riga dei quote
-			return hashBlock("[quote]\n"+bq+"\n[/quote]");
- 		});
+			//<alchimist> it would be nice if you remove these leading spaces in the quotes
+			bq=bq.split("\n").map(function(line){ return line.replace(/^ +/g, ""); }).join("\n"); 
+			
+			if(multiline_triggered){
+				var temp_bq = bq, into_quotes = false;
+				bq = "";
+				temp_bq.split("\n").map(
+						function(line, index){
+							if(quoted_lines.indexOf(index)>-1){
+								//if we've already opened a [quote] block, we don't need a new one.
+								if(into_quotes)
+									bq += line+"\n";
+								else{
+									into_quotes = true;
+									bq += "[quote]"+line+"\n";
+								}
+							}
+							else{
+								//if we were writing inside a [quote] block, we need to close if
+								if(into_quotes){
+									into_quotes = false;
+									bq += "[/quote]"+"\n"+line;
+								}
+								else
+									bq += line+"\n";
+							}
+							return line;
+						}
+					)
+				return bq+(into_quotes?"[/quote]":"")+"\n";
+			}
+			else{
+				//return hashBlock("<blockquote>\n" + bq + "\n</blockquote>");
+				return hashBlock("[quote]\n"+bq+"\n[/quote]");
+			}
+		});
 	return text;
 }
 
@@ -1455,7 +1505,7 @@ var _EncodeEmailAddress = function(addr) {
 
 	addr = addr.replace(/./g, function(ch) {
 		if (ch == "@") {
-		   	// this *must* be encoded. I insist.
+			// this *must* be encoded. I insist.
 			ch = encode[Math.floor(Math.random()*2)](ch);
 		} else if (ch !=":") {
 			// leave ':' alone (to spot mailto: later)
@@ -1576,17 +1626,26 @@ if (typeof module !== 'undefined') module.exports = Showdown;
 // AMD define happens at the end for compatibility with AMD loaders
 // that don't enforce next-turn semantics on modules.
 if (typeof define === 'function' && define.amd) {
-    define('showdown', function() {
-        return Showdown;
-    });
+	define('showdown', function() {
+		return Showdown;
+	});
 }
 
 
 //
 // Showdown usage:
 //
+
+conv_opts = {multiline_quoting: false};
+
+var togglemultiline = function(){
+	conv_opts.multiline_quoting = !conv_opts.multiline_quoting;
+	console.log("(un)checked, now ", conv_opts);
+}
+
 var shitconvert=function(){
-	var converter = new Showdown.converter();
-    document.getElementById("bb").value=converter.makeHtml(document.getElementById('md').value);
-    return true;
+	console.log("converting with options: ", conv_opts);
+	var converter = new Showdown.converter(conv_opts);
+	document.getElementById("bb").value=converter.makeHtml(document.getElementById('md').value);
+	return true;
 }
