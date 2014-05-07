@@ -43,7 +43,21 @@
 // helps: in a copy of markdown.pl, replace "#" with "//" and
 // replace "$text" with "text".  Be sure to ignore whitespace
 // and line endings.
+//
 
+
+//
+// Showdown usage:
+//
+//   var text = "Markdown *rocks*.";
+//
+//   var converter = new Showdown.converter();
+//   var html = converter.makeHtml(text);
+//
+//   alert(html);
+//
+// Note: move the sample code to the bottom of this
+// file before uncommenting it.
 //
 
 
