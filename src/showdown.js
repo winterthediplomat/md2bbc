@@ -105,8 +105,6 @@ Showdown.converter = function(converter_options) {
 var g_urls;
 var g_titles;
 var g_html_blocks;
-// Global flag, needed to know if we're inside code.
-var g_inside_code;
 
 
 // Used to track when we're inside an ordered or unordered list
@@ -151,6 +149,12 @@ var g_lang_extensions = [
 		type: 'lang',
 		regex: '\\\\@',
 		replace: '@'
+	},
+	// escaped #s
+	{
+		type: 'lang',
+		regex: '\\\\#',
+		replace: '#'
 	}
 
 ];
@@ -227,9 +231,6 @@ this.makeHtml = function(text) {
 	g_urls = {};
 	g_titles = {};
 	g_html_blocks = [];
-
-	// Set the global flags.
-	g_inside_code = false;
 
 	// attacklab: Replace ~ with ~T
 	// This lets us use tilde as an escape char to avoid md5 hashes
@@ -735,13 +736,6 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
 	//}
 
 	//original: result += ">" + link_text + "</a>";
-	//if(link_text=="")
-	//	result = "[url]"+url+"[/url]";
-	//else if(url.match(/^https?\:gist\.github\.com\/\w+\/(\w+)$/))
-	//	result = url.replace(/^https?\:gist\.github\.com\/\w+\/(\w+)$/, "[gist]$1[/gist]");
-	//else
-	//	result = "[url="+url+"]"+link_text+"[/url]";
-	//return result;
 	return _buildURL(url, link_text);
 }
 
@@ -780,15 +774,34 @@ var _buildURL = function(url, text){
 	console.log("[_buildURL] url: "+url+" text: "+text);
 	if([wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/)||[])
 		if(gistId) return "[gist]"+gistId+"[/gist]";
-	if([wholeMatch, long_youtube, short_youtube, videoID] = url.match(/(?:https?:\/\/)?(?:www\.)?(?:(youtube\.com)\/watch(?:\?v=|\?.+?&v=)|(youtu\.be)\/)([a-zA-Z0-9_-~]+)/)||[]){
-		console.log("[_buildURL . youtube] "+wholeMatch+" - "+long_youtube+" - "+videoID);
-		if(long_youtube)
-			return "[youtube]$1[/youtube]".replace(/\$1/g, wholeMatch);
-		else if(short_youtube)
-			return "[yt]$1[/yt]".replace(/\$1/g, wholeMatch);
-	}
-	if([wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/)||[])
+
+	if([wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia\.org\/wiki\/(.+)/)||[])
 		if (lang) return "[wiki=$1]$2[/wiki]".replace(/\$1/g, lang).replace(/\$2/g, argument);
+
+	if([wholeMatch, nick, twitterId] = url.match(/https?:\/\/twitter\.com\/(\w+)\/status\/(\d+)/im)||[])
+		if (twitterId) return "[twitter]"+wholeMatch+"[/twitter]";
+
+	//[video] -> youtube, vimeo, dailymotion, facebook 
+	if([wholeMatch, long_youtube, short_youtube, videoID] = url.match(/(?:https?:\/\/)?(?:www\.)?(?:(youtube\.com)\/watch(?:\?v=|\?.+?&v=)|(youtu\.be)\/)([a-zA-Z0-9_-~]+)/)||[]){
+		if(long_youtube || short_youtube)
+			return "[video]$1[/video]".replace(/\$1/g, wholeMatch);
+	}
+	if([wholeMatch] = url.match(/(www\.)?vimeo\.com\/.\d+(\#.+?)?/)||[])
+		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
+	if([wholeMatch] = url.match(/(www\.)?dai\.?ly(motion)?/)||[])
+		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
+	if([wholeMatch] = url.match(/facebook\.com\/.*query\?v\=/)||[])
+		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
+
+	//[music] -> spotify, soundcloud, deezer
+	if([wholeMatch, spotifytrack] = url.match(/^https?:\/\/(open|play)\.spotify\.com\/track\/(\w\d)+$/im)||[])
+		if (spotifytrack) return "[music]spotify:track:$1[/music]".replace(/\$1/g, spotifytrack);
+	if([wholeMatch] = url.match(/^https?:\/\/soundcloud\.com\/\S+\/\S+$/im)||[])
+		if (wholeMatch) return "[music]$1[/music]".replace(/\$1/g, wholeMatch);
+	if([wholeMatch, www, type, deezerid] = url.match(/^https?:\/\/(www\.)?deezer\.com\/(track|album|playlist)\/(\d+)$/im)||[])
+		if(wholeMatch) return "[music]"+wholeMatch+"[/music]";
+
+	//random urls
 	if (text == "")
 		return "[url]"+url+"[/url]";
 	return "[url=$1]$2[/url]".replace(/\$1/g, url).replace(/\$2/g, text);
@@ -1137,24 +1150,14 @@ var _DoCodeBlocks = function(text) {
 
 			console.log("[_DoCodeBlocks] codeblock:", codeblock);
 
-			if(!g_inside_code){ //change backticks to [code] only if we're not inside a code block.
-				console.log("[_DoCodeBlocks] we're not inside code! setting g_inside_code to true");
-				g_inside_code = true;
-				codeblock = _EncodeCode( _Outdent(codeblock));
-				codeblock = _Detab(codeblock);
-				codeblock = codeblock.replace(/^\n+/g,""); // trim leading newlines
-				codeblock = codeblock.replace(/\n+$/g,""); // trim trailing whitespace
+			codeblock = _EncodeCode( _Outdent(codeblock));
+			codeblock = _Detab(codeblock);
+			codeblock = codeblock.replace(/^\n+/g,""); // trim leading newlines
+			codeblock = codeblock.replace(/\n+$/g,""); // trim trailing whitespace
 
-				//original: codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
-				codeblock = "[code]"+codeblock+"[/code]";
-				g_inside_code = false;
-				console.log("[_DoCodeBlocks] setting g_inside_code back to false");
-				return hashBlock(codeblock) + nextChar;
-			}
-			else{
-				console.log("[_DoCodeBlocks] we're inside a block code! returning ", wholeMatch);
-				return wholeMatch; //in a code block? no modifications are needed.
-			}
+			//original: codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
+			codeblock = "[code]"+codeblock+"[/code]";
+			return hashBlock(codeblock) + nextChar;
 		}
 	);
 
@@ -1184,9 +1187,6 @@ var _DoGithubCodeBlocks = function(text) {
 		/(?:^|\n)```(.*)\n([\s\S]+?)\n```/g, 
 		function(wholeMatch,m1,m2) {
 			console.log("[_DoGithubCodeBlocks] opening a code block, codeblock: ", m2);
-			//tell others functions called there we're inside and no modification should be done 
-			g_inside_code = true;
-			console.log("[_DoGithubCodeBlocks] setting g_inside_code to true");
 
 			var language = m1;
 			var codeblock = m2;
@@ -1199,10 +1199,6 @@ var _DoGithubCodeBlocks = function(text) {
 			//codeblock = "<pre><code" + (language ? " class=\"" + language + '"' : "") + ">" + codeblock + "\n</code></pre>";
 			//codeblock = hashBlock(codeblock);
 			codeblock = "[code"+(language? "="+language : "")+"]\n"+codeblock+"\n[/code]";
-
-			//remove the curfew
-			g_inside_code = false;
-			console.log("[_DoGithubCodeBlocks] setting g_inside_code to false");
 
 			return codeblock; //hashBlock(codeblock);
 		}
