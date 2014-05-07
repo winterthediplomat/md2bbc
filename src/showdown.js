@@ -1,67 +1,4 @@
 //
-// showdown.js -- A javascript port of Markdown.
-//
-// Copyright (c) 2007 John Fraser.
-//
-// Original Markdown Copyright (c) 2004-2005 John Gruber
-//   <http://daringfireball.net/projects/markdown/>
-//
-// Redistributable under a BSD-style open source license.
-// See license.txt for more information.
-//
-// The full source distribution is at:
-//
-//				A A L
-//				T C A
-//				T K B
-//
-//   <http://www.attacklab.net/>
-//
-
-//
-// Wherever possible, Showdown is a straight, line-by-line port
-// of the Perl version of Markdown.
-//
-// This is not a normal parser design; it's basically just a
-// series of string substitutions.  It's hard to read and
-// maintain this way,  but keeping Showdown close to the original
-// design makes it easier to port new features.
-//
-// More importantly, Showdown behaves like markdown.pl in most
-// edge cases.  So web applications can do client-side preview
-// in Javascript, and then build identical HTML on the server.
-//
-// This port needs the new RegExp functionality of ECMA 262,
-// 3rd Edition (i.e. Javascript 1.5).  Most modern web browsers
-// should do fine.  Even with the new regular expression features,
-// We do a lot of work to emulate Perl's regex functionality.
-// The tricky changes in this file mostly have the "attacklab:"
-// label.  Major or self-explanatory changes don't.
-//
-// Smart diff tools like Araxis Merge will be able to match up
-// this file with markdown.pl in a useful way.  A little tweaking
-// helps: in a copy of markdown.pl, replace "#" with "//" and
-// replace "$text" with "text".  Be sure to ignore whitespace
-// and line endings.
-//
-
-
-//
-// Showdown usage:
-//
-//   var text = "Markdown *rocks*.";
-//
-//   var converter = new Showdown.converter();
-//   var html = converter.makeHtml(text);
-//
-//   alert(html);
-//
-// Note: move the sample code to the bottom of this
-// file before uncommenting it.
-//
-
-
-//
 // Showdown namespace
 //
 var Showdown = { extensions: {} };
@@ -105,6 +42,8 @@ Showdown.converter = function(converter_options) {
 var g_urls;
 var g_titles;
 var g_html_blocks;
+// Global flag, needed to know if we're inside code.
+var g_inside_code;
 
 
 // Used to track when we're inside an ordered or unordered list
@@ -112,52 +51,7 @@ var g_html_blocks;
 var g_list_level = 0;
 
 // Global extensions
-var g_lang_extensions = [
-	// @users
-	{   
-		type: 'lang',
-		regex: '\\B(\\\\)?@([\\S]+)\\b',
-		replace: function(match, leadingSlash, username) {
-			// Check if we matched the leading \ and return nothing changed if so
-			if (leadingSlash === '\\')
-				return match;
-			else
-				return "[$1](https://nerdz.eu/$1.)".replace(/\$1/g, username); // '<a href="http://twitter.com/' + username + '">@' + username + '</a>';/
-		 }
-	},
-	// #projects
-	{
-		type: "lang",
-		regex: '\\B(\\\\)?#([\\S]+)\\b',
-		replace: function(match, leadingSlash, projectname) {
-			if(leadingSlash === '\\')
-				return match;
-			else
-				return "[prj](https://nerdz.eu/prj:)".replace(/prj/g, projectname);
-		}
-	},
-	// ~~del~~
-	{
-		type: "lang",
-		regex: '~T~T(.+)~T~T', //blame /~/g -> "~T" replacement
-		replace: function(match, /*leadingSlash, */strikeThroughText) {
-				return "[del]text[/del]".replace("text", strikeThroughText);
-		}
-	},
-	// escaped @s
-	{
-		type: 'lang',
-		regex: '\\\\@',
-		replace: '@'
-	},
-	// escaped #s
-	{
-		type: 'lang',
-		regex: '\\\\#',
-		replace: '#'
-	}
-
-];
+var g_lang_extensions = []; // extensions are bad for your healt , don't use them
 
 var g_output_modifiers = [
 	//<hr> -> [hr]
@@ -232,6 +126,9 @@ this.makeHtml = function(text) {
 	g_titles = {};
 	g_html_blocks = [];
 
+	// Set the global flags.
+	g_inside_code = false;
+
 	// attacklab: Replace ~ with ~T
 	// This lets us use tilde as an escape char to avoid md5 hashes
 	// The choice of character is arbitray; anything that isn't
@@ -264,13 +161,13 @@ this.makeHtml = function(text) {
 		text = _ExecuteExtension(x, text);
 	});
 
+
 	// Handle github codeblocks prior to running HashHTML so that
 	// HTML contained within the codeblock gets escaped propertly
 	text = _DoGithubCodeBlocks(text);
 
 	// Turn block-level HTML blocks into hash entries
 	text = _HashHTMLBlocks(text);
-
 	// Strip link definitions, store in hashes.
 	text = _StripLinkDefinitions(text);
 
@@ -332,7 +229,7 @@ if (converter_options && converter_options.extensions) {
 
 var _ExecuteExtension = function(ext, text) {
 	if (ext.regex) {
-		var re = new RegExp(ext.regex, 'g');
+		var re = new RegExp(ext.regex/* + '(?![^\[]*\]|[^\[\]]*\[\/'*/, 'g');
 		return text.replace(re, ext.replace);
 	} else if (ext.filter) {
 		return ext.filter(text);
@@ -585,6 +482,10 @@ var _RunSpanGamut = function(text) {
 	text = _DoAutoLinks(text);
 	text = _EncodeAmpsAndAngles(text);
 	text = _DoItalicsAndBold(text);
+	// Custom handlers
+	text = _DoStrikes(text);
+	text = _DoUsers(text);
+	text = _DoProjects(text);
 
 	// Do hard breaks:
 	//not anymore. text = text.replace(/  +\n/g," <br />\n");
@@ -736,6 +637,13 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
 	//}
 
 	//original: result += ">" + link_text + "</a>";
+	//if(link_text=="")
+	//	result = "[url]"+url+"[/url]";
+	//else if(url.match(/^https?\:gist\.github\.com\/\w+\/(\w+)$/))
+	//	result = url.replace(/^https?\:gist\.github\.com\/\w+\/(\w+)$/, "[gist]$1[/gist]");
+	//else
+	//	result = "[url="+url+"]"+link_text+"[/url]";
+	//return result;
 	return _buildURL(url, link_text);
 }
 
@@ -772,36 +680,35 @@ var _DoAutoLinks = function(text) {
 
 var _buildURL = function(url, text){
 	console.log("[_buildURL] url: "+url+" text: "+text);
+
+	// Gist
 	if([wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/)||[])
 		if(gistId) return "[gist]"+gistId+"[/gist]";
 
-	if([wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia\.org\/wiki\/(.+)/)||[])
-		if (lang) return "[wiki=$1]$2[/wiki]".replace(/\$1/g, lang).replace(/\$2/g, argument);
+	// Wikipedia article
+	if([wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/)||[])
+		if (lang) return "[wiki=$1]$2[/wiki]".replace(/\$1/g, lang).replace(/\$2/g, argument.replace(/~E95E/g," "));
 
-	if([wholeMatch, nick, twitterId] = url.match(/https?:\/\/twitter\.com\/(\w+)\/status\/(\d+)/im)||[])
-		if (twitterId) return "[twitter]"+wholeMatch+"[/twitter]";
+	// Twitter
+	/* Still WiP */
+	/*if ([wholeMatch, tweetID] = url.match(/https?:\/\/twitter\.com\/[^\/]+\/status\/([0-9]+)/)||[])
+		return "[twitter]" + tweetID + "[/twitter]";*/
 
-	//[video] -> youtube, vimeo, dailymotion, facebook 
+	// Music sharing (supported: spotify, soundcloud, deezer)
+	/* WiP: regex doesn't match */
+	/*if ([wholeMatch, website, audioID] = url.match(/^(spotify):track:(\w+)$|https?:\/\/(?:(?:play|open)\.(spotify)\.com\/track\/(\w+))|(?:(soundcloud)\.com\/[^\/]\/.+)|(?:www\.(deezer)\.com\/[^\/]\/([0-9]+))/) || []) {
+		if (!website.localeCompare("spotify"))
+			return "[music]spotify:track:" + audioId + "[/music]";
+		else
+			return "[music]" + wholeMatch + "[/music]";
+	}*/
+
+	// Video sharing (only YouTube is supported at the moment, more soon)
 	if([wholeMatch, long_youtube, short_youtube, videoID] = url.match(/(?:https?:\/\/)?(?:www\.)?(?:(youtube\.com)\/watch(?:\?v=|\?.+?&v=)|(youtu\.be)\/)([a-zA-Z0-9_-~]+)/)||[]){
-		if(long_youtube || short_youtube)
-			return "[video]$1[/video]".replace(/\$1/g, wholeMatch);
+		console.log("[_buildURL . youtube] "+wholeMatch+" - "+long_youtube+" - "+videoID);
+		return "[video]$1[/video]".replace(/\$1/, wholeMatch);
 	}
-	if([wholeMatch] = url.match(/(www\.)?vimeo\.com\/.\d+(\#.+?)?/)||[])
-		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
-	if([wholeMatch] = url.match(/(www\.)?dai\.?ly(motion)?/)||[])
-		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
-	if([wholeMatch] = url.match(/facebook\.com\/.*query\?v\=/)||[])
-		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
 
-	//[music] -> spotify, soundcloud, deezer
-	if([wholeMatch, spotifytrack] = url.match(/^https?:\/\/(open|play)\.spotify\.com\/track\/(\w\d)+$/im)||[])
-		if (spotifytrack) return "[music]spotify:track:$1[/music]".replace(/\$1/g, spotifytrack);
-	if([wholeMatch] = url.match(/^https?:\/\/soundcloud\.com\/\S+\/\S+$/im)||[])
-		if (wholeMatch) return "[music]$1[/music]".replace(/\$1/g, wholeMatch);
-	if([wholeMatch, www, type, deezerid] = url.match(/^https?:\/\/(www\.)?deezer\.com\/(track|album|playlist)\/(\d+)$/im)||[])
-		if(wholeMatch) return "[music]"+wholeMatch+"[/music]";
-
-	//random urls
 	if (text == "")
 		return "[url]"+url+"[/url]";
 	return "[url=$1]$2[/url]".replace(/\$1/g, url).replace(/\$2/g, text);
@@ -1150,14 +1057,24 @@ var _DoCodeBlocks = function(text) {
 
 			console.log("[_DoCodeBlocks] codeblock:", codeblock);
 
-			codeblock = _EncodeCode( _Outdent(codeblock));
-			codeblock = _Detab(codeblock);
-			codeblock = codeblock.replace(/^\n+/g,""); // trim leading newlines
-			codeblock = codeblock.replace(/\n+$/g,""); // trim trailing whitespace
+			if(!g_inside_code){ //change backticks to [code] only if we're not inside a code block.
+				console.log("[_DoCodeBlocks] we're not inside code! setting g_inside_code to true");
+				g_inside_code = true;
+				codeblock = _EncodeCode( _Outdent(codeblock));
+				codeblock = _Detab(codeblock);
+				codeblock = codeblock.replace(/^\n+/g,""); // trim leading newlines
+				codeblock = codeblock.replace(/\n+$/g,""); // trim trailing whitespace
 
-			//original: codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
-			codeblock = "[code]"+codeblock+"[/code]";
-			return hashBlock(codeblock) + nextChar;
+				//original: codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
+				codeblock = "[code]"+codeblock+"[/code]";
+				g_inside_code = false;
+				console.log("[_DoCodeBlocks] setting g_inside_code back to false");
+				return hashBlock(codeblock) + nextChar;
+			}
+			else{
+				console.log("[_DoCodeBlocks] we're inside a block code! returning ", wholeMatch);
+				return wholeMatch; //in a code block? no modifications are needed.
+			}
 		}
 	);
 
@@ -1187,6 +1104,9 @@ var _DoGithubCodeBlocks = function(text) {
 		/(?:^|\n)```(.*)\n([\s\S]+?)\n```/g, 
 		function(wholeMatch,m1,m2) {
 			console.log("[_DoGithubCodeBlocks] opening a code block, codeblock: ", m2);
+			//tell others functions called there we're inside and no modification should be done 
+			g_inside_code = true;
+			console.log("[_DoGithubCodeBlocks] setting g_inside_code to true");
 
 			var language = m1;
 			var codeblock = m2;
@@ -1199,6 +1119,10 @@ var _DoGithubCodeBlocks = function(text) {
 			//codeblock = "<pre><code" + (language ? " class=\"" + language + '"' : "") + ">" + codeblock + "\n</code></pre>";
 			//codeblock = hashBlock(codeblock);
 			codeblock = "[code"+(language? "="+language : "")+"]\n"+codeblock+"\n[/code]";
+
+			//remove the curfew
+			g_inside_code = false;
+			console.log("[_DoGithubCodeBlocks] setting g_inside_code to false");
 
 			return codeblock; //hashBlock(codeblock);
 		}
@@ -1282,7 +1206,7 @@ var _EncodeCode = function(text) {
 	text = text.replace(/>/g,"&gt;");
 
 	// Now, escape characters that are magic in Markdown:
-	text = escapeCharacters(text,"\*_{}[]\\",false);
+	text = escapeCharacters(text,"\*_{}[]\\@#`~",false);
 
 // jj the line above breaks this:
 //---
@@ -1412,6 +1336,41 @@ var _DoBlockQuotes = function(text) {
 		});
 	return text;
 }
+
+//
+//  Custom Handlers
+//
+var _DoStrikes = function(text) {
+	console.log("[_DoStrikes]: text=" + text);
+	text = text.replace(/~T~T(.+)~T~T/g, "[del]$1[/del]")
+
+	return text;
+}
+
+var _DoUsers = function(text) {
+	console.log("[_DoUsers]: text=" + text);
+	text = text.replace(/\B(\\)?@([\S]+)\b/g, function checkAtLeadingSlahes(match, leadingSlash, username) {
+		if (leadingSlash === '\\')
+			return "@" + username;
+		return "[user]" + username + "[/user]";
+	});
+
+	return text;
+}
+
+var _DoProjects = function(text) {
+	console.log("[_DoProjects]: text=" + text);
+	text = text.replace(/\B(\\)?#([\S]+)\b/g, function checkDashLeadingSlashes(match, leadingSlash, projectName) {
+		if (leadingSlash ==='\\')
+			return match;
+		return "[project]" + projectName + "[/project]";
+	});
+
+	return text;
+}
+//
+//  /Custom handlers
+//
 
 var _FormParagraphs = function(text) {
 //
