@@ -770,8 +770,8 @@ var _buildURL = function(url, text){
 			return "[video]" + url + "[/video]";
 	}
 	// Dailymotion
-	if (url.indexOf("dailymotion.com") !== -1) {
-		if (/^https?:\/\/www\.dailymotion\.com\/video\/\w+$/.test(url))
+	if (url.indexOf("dailymotion.com/video/") !== -1 || url.indexOf("dai.ly/") !== -1) {
+		if (/^https?:\/\/(www\.dailymotion\.com\/video)|(dai\.ly)\/\w+$/.test(url))
 			return "[video]" + url + "[/video]";
 	}
 	// Vimeo
