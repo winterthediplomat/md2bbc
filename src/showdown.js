@@ -105,8 +105,6 @@ Showdown.converter = function(converter_options) {
 var g_urls;
 var g_titles;
 var g_html_blocks;
-// Global flag, needed to know if we're inside code.
-var g_inside_code;
 
 
 // Used to track when we're inside an ordered or unordered list
@@ -188,9 +186,6 @@ this.makeHtml = function(text) {
 	g_urls = {};
 	g_titles = {};
 	g_html_blocks = [];
-
-	// Set the global flags.
-	g_inside_code = false;
 
 	// attacklab: Replace ~ with ~T
 	// This lets us use tilde as an escape char to avoid md5 hashes
@@ -1143,26 +1138,14 @@ var _DoCodeBlocks = function(text) {
 			var codeblock = m1;
 			var nextChar = m2;
 
-			console.log("[_DoCodeBlocks] codeblock:", codeblock);
+			codeblock = _EncodeCode( _Outdent(codeblock));
+			codeblock = _Detab(codeblock);
+			codeblock = codeblock.replace(/^\n+/g,""); // trim leading newlines
+			codeblock = codeblock.replace(/\n+$/g,""); // trim trailing whitespace
 
-			if(!g_inside_code){ //change backticks to [code] only if we're not inside a code block.
-				console.log("[_DoCodeBlocks] we're not inside code! setting g_inside_code to true");
-				g_inside_code = true;
-				codeblock = _EncodeCode( _Outdent(codeblock));
-				codeblock = _Detab(codeblock);
-				codeblock = codeblock.replace(/^\n+/g,""); // trim leading newlines
-				codeblock = codeblock.replace(/\n+$/g,""); // trim trailing whitespace
-
-				//original: codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
-				codeblock = "[code]"+codeblock+"[/code]";
-				g_inside_code = false;
-				console.log("[_DoCodeBlocks] setting g_inside_code back to false");
-				return hashBlock(codeblock) + nextChar;
-			}
-			else{
-				console.log("[_DoCodeBlocks] we're inside a block code! returning ", wholeMatch);
-				return wholeMatch; //in a code block? no modifications are needed.
-			}
+			//original: codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
+			codeblock = "[code]"+codeblock+"[/code]";
+			return hashBlock(codeblock) + nextChar;
 		}
 	);
 
@@ -1192,9 +1175,6 @@ var _DoGithubCodeBlocks = function(text) {
 		/(?:^|\n)```(.*)\n([\s\S]+?)\n```/g, 
 		function(wholeMatch,m1,m2) {
 			console.log("[_DoGithubCodeBlocks] opening a code block, codeblock: ", m2);
-			//tell others functions called there we're inside and no modification should be done 
-			g_inside_code = true;
-			console.log("[_DoGithubCodeBlocks] setting g_inside_code to true");
 
 			var language = m1;
 			var codeblock = m2;
@@ -1207,10 +1187,6 @@ var _DoGithubCodeBlocks = function(text) {
 			//codeblock = "<pre><code" + (language ? " class=\"" + language + '"' : "") + ">" + codeblock + "\n</code></pre>";
 			//codeblock = hashBlock(codeblock);
 			codeblock = "[code"+(language? "="+language : "")+"]\n"+codeblock+"\n[/code]";
-
-			//remove the curfew
-			g_inside_code = false;
-			console.log("[_DoGithubCodeBlocks] setting g_inside_code to false");
 
 			return codeblock; //hashBlock(codeblock);
 		}
