@@ -112,52 +112,7 @@ var g_html_blocks;
 var g_list_level = 0;
 
 // Global extensions
-var g_lang_extensions = [
-	// @users
-	{   
-		type: 'lang',
-		regex: '\\B(\\\\)?@([\\S]+)\\b',
-		replace: function(match, leadingSlash, username) {
-			// Check if we matched the leading \ and return nothing changed if so
-			if (leadingSlash === '\\')
-				return match;
-			else
-				return "[$1](https://nerdz.eu/$1.)".replace(/\$1/g, username); // '<a href="http://twitter.com/' + username + '">@' + username + '</a>';/
-		 }
-	},
-	// #projects
-	{
-		type: "lang",
-		regex: '\\B(\\\\)?#([\\S]+)\\b',
-		replace: function(match, leadingSlash, projectname) {
-			if(leadingSlash === '\\')
-				return match;
-			else
-				return "[prj](https://nerdz.eu/prj:)".replace(/prj/g, projectname);
-		}
-	},
-	// ~~del~~
-	{
-		type: "lang",
-		regex: '~T~T(.+)~T~T', //blame /~/g -> "~T" replacement
-		replace: function(match, /*leadingSlash, */strikeThroughText) {
-				return "[del]text[/del]".replace("text", strikeThroughText);
-		}
-	},
-	// escaped @s
-	{
-		type: 'lang',
-		regex: '\\\\@',
-		replace: '@'
-	},
-	// escaped #s
-	{
-		type: 'lang',
-		regex: '\\\\#',
-		replace: '#'
-	}
-
-];
+var g_lang_extensions = []; // extensions are bad for your healt , don't use them
 
 var g_output_modifiers = [
 	//<hr> -> [hr]
@@ -264,13 +219,13 @@ this.makeHtml = function(text) {
 		text = _ExecuteExtension(x, text);
 	});
 
+
 	// Handle github codeblocks prior to running HashHTML so that
 	// HTML contained within the codeblock gets escaped propertly
 	text = _DoGithubCodeBlocks(text);
 
 	// Turn block-level HTML blocks into hash entries
 	text = _HashHTMLBlocks(text);
-
 	// Strip link definitions, store in hashes.
 	text = _StripLinkDefinitions(text);
 
@@ -585,6 +540,10 @@ var _RunSpanGamut = function(text) {
 	text = _DoAutoLinks(text);
 	text = _EncodeAmpsAndAngles(text);
 	text = _DoItalicsAndBold(text);
+	// Custom handlers
+	text = _DoStrikes(text);
+	text = _DoUsers(text);
+	text = _DoProjects(text);
 
 	// Do hard breaks:
 	//not anymore. text = text.replace(/  +\n/g," <br />\n");
@@ -736,6 +695,13 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
 	//}
 
 	//original: result += ">" + link_text + "</a>";
+	//if(link_text=="")
+	//	result = "[url]"+url+"[/url]";
+	//else if(url.match(/^https?\:gist\.github\.com\/\w+\/(\w+)$/))
+	//	result = url.replace(/^https?\:gist\.github\.com\/\w+\/(\w+)$/, "[gist]$1[/gist]");
+	//else
+	//	result = "[url="+url+"]"+link_text+"[/url]";
+	//return result;
 	return _buildURL(url, link_text);
 }
 
@@ -772,39 +738,63 @@ var _DoAutoLinks = function(text) {
 
 var _buildURL = function(url, text){
 	console.log("[_buildURL] url: "+url+" text: "+text);
-	if([wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/)||[])
-		if(gistId) return "[gist]"+gistId+"[/gist]";
 
-	if([wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia\.org\/wiki\/(.+)/)||[])
-		if (lang) return "[wiki=$1]$2[/wiki]".replace(/\$1/g, lang).replace(/\$2/g, argument);
-
-	if([wholeMatch, nick, twitterId] = url.match(/https?:\/\/twitter\.com\/(\w+)\/status\/(\d+)/im)||[])
-		if (twitterId) return "[twitter]"+wholeMatch+"[/twitter]";
-
-	//[video] -> youtube, vimeo, dailymotion, facebook 
-	if([wholeMatch, long_youtube, short_youtube, videoID] = url.match(/(?:https?:\/\/)?(?:www\.)?(?:(youtube\.com)\/watch(?:\?v=|\?.+?&v=)|(youtu\.be)\/)([a-zA-Z0-9_-~]+)/)||[]){
-		if(long_youtube || short_youtube)
-			return "[video]$1[/video]".replace(/\$1/g, wholeMatch);
+	// Gist
+	if (url.indexOf("gist.github.com") !== -1) {
+		[wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/) || [];
+		if (gistId) return "[gist]" + gistId + "[/gist]";
 	}
-	if([wholeMatch] = url.match(/(www\.)?vimeo\.com\/.\d+(\#.+?)?/)||[])
-		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
-	if([wholeMatch] = url.match(/(www\.)?dai\.?ly(motion)?/)||[])
-		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
-	if([wholeMatch] = url.match(/facebook\.com\/.*query\?v\=/)||[])
-		if (wholeMatch) return "[video]"+wholeMatch+"[/video]";
+	// Wikipedia article
+	if (url.indexOf(".wikipedia.org/wiki/") !== -1) {
+		[wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/) || [];
+		if (lang && argument) return "[wiki=" + lang + "]" + argument.replace(/~E95E/g," ") + "[/wiki]";
+	}
+	// Twitter
+	if (url.indexOf("twitter.com") !== -1) {
+		[wholeMatch, tweetID] = url.match(/https?:\/\/twitter\.com\/[^\/]+\/status\/([0-9]+)/) || [];
+		if (tweetID) return "[twitter]" + tweetID + "[/twitter]";
+	}
+	// YouTube
+	if (url.indexOf("youtube.com/watch?") !== -1 || url.indexOf("youtu.be/") !== -1) {
+		if (/^(https?:\/\/)?(www\.)?((youtube\.com\/watch\?(.+&)?v=)|(youtu\.be\/))[\w_-~]+(&.+)?$/.test(url))
+			return "[video]" + url + "[/video]";
+	}
+	// Facebook
+	if (url.indexOf("facebook.com/photo.php?v=") !== -1) {
+		if (/^https?:\/\/www\.facebook\.com\/photo\.php\?v=(\d+)$/.test(url))
+			return "[video]" + url + "[/video]";
+	}
+	// Dailymotion
+	if (url.indexOf("dailymotion.com/video/") !== -1 || url.indexOf("dai.ly/") !== -1) {
+		if (/^https?:\/\/(www\.dailymotion\.com\/video)|(dai\.ly)\/\w+$/.test(url))
+			return "[video]" + url + "[/video]";
+	}
+	// Vimeo
+	if (url.indexOf("vimeo.com") !== -1) {
+		if (/^https?:\/\/vimeo\.com\/\d+$/.test(url))
+			return "[video]" + url + "[/video]";
+	}
+	// Spotify
+	if (url.indexOf("spotify.com") !== -1) {
+		[wholeMatch, spotifyID] = url.match(/^https?:\/\/(?:play|open)\.spotify\.com\/track\/(\w+)$/) || [];
+		if (spotifyID) return "[music]spotify:track:" + spotifyID + "[/music]";
+	}
+	// Soundcloud
+	if (url.indexOf("soundcloud.com")  !== -1) {
+		if (/^https?:\/\/soundcloud\.com\/[\w-]+\/[\w-]+$/.test(url))
+			return "[music]" + url + "[/music]";
+	}
+	// Deezer
+	if (url.indexOf("deezer.com")  !== -1) {
+		if (/^https?:\/\/(www\.)?deezer\.com\/(album|track|playlist)\/\d+$/.test(url))
+			return "[music]" + url + "[/music]";
+	}
 
-	//[music] -> spotify, soundcloud, deezer
-	if([wholeMatch, spotifytrack] = url.match(/^https?:\/\/(open|play)\.spotify\.com\/track\/(\w\d)+$/im)||[])
-		if (spotifytrack) return "[music]spotify:track:$1[/music]".replace(/\$1/g, spotifytrack);
-	if([wholeMatch] = url.match(/^https?:\/\/soundcloud\.com\/\S+\/\S+$/im)||[])
-		if (wholeMatch) return "[music]$1[/music]".replace(/\$1/g, wholeMatch);
-	if([wholeMatch, www, type, deezerid] = url.match(/^https?:\/\/(www\.)?deezer\.com\/(track|album|playlist)\/(\d+)$/im)||[])
-		if(wholeMatch) return "[music]"+wholeMatch+"[/music]";
-
-	//random urls
+	// Url without text (no hyperlinked text)
 	if (text == "")
-		return "[url]"+url+"[/url]";
-	return "[url=$1]$2[/url]".replace(/\$1/g, url).replace(/\$2/g, text);
+		return "[url]" + url + "[/url]";
+
+	return "[url=" + url + "]" + text + "[/url]";
 }
 
 var _DoImages = function(text) {
@@ -1148,8 +1138,6 @@ var _DoCodeBlocks = function(text) {
 			var codeblock = m1;
 			var nextChar = m2;
 
-			console.log("[_DoCodeBlocks] codeblock:", codeblock);
-
 			codeblock = _EncodeCode( _Outdent(codeblock));
 			codeblock = _Detab(codeblock);
 			codeblock = codeblock.replace(/^\n+/g,""); // trim leading newlines
@@ -1282,7 +1270,7 @@ var _EncodeCode = function(text) {
 	text = text.replace(/>/g,"&gt;");
 
 	// Now, escape characters that are magic in Markdown:
-	text = escapeCharacters(text,"\*_{}[]\\",false);
+	text = escapeCharacters(text,"\*_{}[]\\@#`~",false);
 
 // jj the line above breaks this:
 //---
@@ -1412,6 +1400,41 @@ var _DoBlockQuotes = function(text) {
 		});
 	return text;
 }
+
+//
+//  Custom Handlers
+//
+var _DoStrikes = function(text) {
+	console.log("[_DoStrikes]: text=" + text);
+	text = text.replace(/~T~T(.+)~T~T/g, "[del]$1[/del]")
+
+	return text;
+}
+
+var _DoUsers = function(text) {
+	console.log("[_DoUsers]: text=" + text);
+	text = text.replace(/\B(\\)?@([\S]+)\b/g, function checkAtLeadingSlahes(match, leadingSlash, username) {
+		if (leadingSlash === '\\')
+			return "@" + username;
+		return "[user]" + username + "[/user]";
+	});
+
+	return text;
+}
+
+var _DoProjects = function(text) {
+	console.log("[_DoProjects]: text=" + text);
+	text = text.replace(/\B(\\)?#([\S]+)\b/g, function checkDashLeadingSlashes(match, leadingSlash, projectName) {
+		if (leadingSlash ==='\\')
+			return match;
+		return "[project]" + projectName + "[/project]";
+	});
+
+	return text;
+}
+//
+//  /Custom handlers
+//
 
 var _FormParagraphs = function(text) {
 //
