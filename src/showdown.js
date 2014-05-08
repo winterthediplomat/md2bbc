@@ -745,36 +745,61 @@ var _buildURL = function(url, text){
 	console.log("[_buildURL] url: "+url+" text: "+text);
 
 	// Gist
-	if([wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/)||[])
-		if(gistId) return "[gist]"+gistId+"[/gist]";
-
+	if (url.indexOf("gist.github.com") !== -1) {
+		[wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/) || [];
+		if (gistId) return "[gist]" + gistId + "[/gist]";
+	}
 	// Wikipedia article
-	if([wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/)||[])
-		if (lang) return "[wiki=$1]$2[/wiki]".replace(/\$1/g, lang).replace(/\$2/g, argument.replace(/~E95E/g," "));
-
+	if (url.indexOf(".wikipedia.org/wiki/") !== -1) {
+		[wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/) || [];
+		if (lang && argument) return "[wiki=" + lang + "]" + argument.replace(/~E95E/g," ") + "[/wiki]";
+	}
 	// Twitter
-	/* Still WiP */
-	/*if ([wholeMatch, tweetID] = url.match(/https?:\/\/twitter\.com\/[^\/]+\/status\/([0-9]+)/)||[])
-		return "[twitter]" + tweetID + "[/twitter]";*/
-
-	// Music sharing (supported: spotify, soundcloud, deezer)
-	/* WiP: regex doesn't match */
-	/*if ([wholeMatch, website, audioID] = url.match(/^(spotify):track:(\w+)$|https?:\/\/(?:(?:play|open)\.(spotify)\.com\/track\/(\w+))|(?:(soundcloud)\.com\/[^\/]\/.+)|(?:www\.(deezer)\.com\/[^\/]\/([0-9]+))/) || []) {
-		if (!website.localeCompare("spotify"))
-			return "[music]spotify:track:" + audioId + "[/music]";
-		else
-			return "[music]" + wholeMatch + "[/music]";
-	}*/
-
-	// Video sharing (only YouTube is supported at the moment, more soon)
-	if([wholeMatch, long_youtube, short_youtube, videoID] = url.match(/(?:https?:\/\/)?(?:www\.)?(?:(youtube\.com)\/watch(?:\?v=|\?.+?&v=)|(youtu\.be)\/)([a-zA-Z0-9_-~]+)/)||[]){
-		console.log("[_buildURL . youtube] "+wholeMatch+" - "+long_youtube+" - "+videoID);
-		return "[video]$1[/video]".replace(/\$1/, wholeMatch);
+	if (url.indexOf("twitter.com") !== -1) {
+		[wholeMatch, tweetID] = url.match(/https?:\/\/twitter\.com\/[^\/]+\/status\/([0-9]+)/) || [];
+		if (tweetID) return "[twitter]" + tweetID + "[/twitter]";
+	}
+	// YouTube
+	if (url.indexOf("youtube.com/watch?") !== -1 || url.indexOf("youtu.be/") !== -1) {
+		if (/^(https?:\/\/)?(www\.)?((youtube\.com\/watch\?(.+&)?v=)|(youtu\.be\/))[\w_-~]+(&.+)?$/.test(url))
+			return "[video]" + url + "[/video]";
+	}
+	// Facebook
+	if (url.indexOf("facebook.com/photo.php?v=") !== -1) {
+		if (/^https?:\/\/www\.facebook\.com\/photo\.php\?v=(\d+)$/.test(url))
+			return "[video]" + url + "[/video]";
+	}
+	// Dailymotion
+	if (url.indexOf("dailymotion.com") !== -1) {
+		if (/^https?:\/\/www\.dailymotion\.com\/video\/\w+$/.test(url))
+			return "[video]" + url + "[/video]";
+	}
+	// Vimeo
+	if (url.indexOf("vimeo.com") !== -1) {
+		if (/^https?:\/\/vimeo\.com\/\d+$/.test(url))
+			return "[video]" + url + "[/video]";
+	}
+	// Spotify
+	if (url.indexOf("spotify.com") !== -1) {
+		[wholeMatch, spotifyID] = url.match(/^https?:\/\/(?:play|open)\.spotify\.com\/track\/(\w+)$/) || [];
+		if (spotifyID) return "[music]spotify:track:" + spotifyID + "[/music]";
+	}
+	// Soundcloud
+	if (url.indexOf("soundcloud.com")  !== -1) {
+		if (/^https?:\/\/soundcloud\.com\/[\w-]+\/[\w-]+$/.test(url))
+			return "[music]" + url + "[/music]";
+	}
+	// Deezer
+	if (url.indexOf("deezer.com")  !== -1) {
+		if (/^https?:\/\/(www\.)?deezer\.com\/(album|track|playlist)\/\d+$/.test(url))
+			return "[music]" + url + "[/music]";
 	}
 
+	// Url without text (no hyperlinked text)
 	if (text == "")
-		return "[url]"+url+"[/url]";
-	return "[url=$1]$2[/url]".replace(/\$1/g, url).replace(/\$2/g, text);
+		return "[url]" + url + "[/url]";
+
+	return "[url=" + url + "]" + text + "[/url]";
 }
 
 var _DoImages = function(text) {
