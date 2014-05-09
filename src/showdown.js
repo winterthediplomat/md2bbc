@@ -112,7 +112,7 @@ var g_html_blocks;
 var g_list_level = 0;
 
 // Global extensions
-var g_lang_extensions = []; // extensions are bad for your healt , don't use them
+var g_lang_extensions = []; // extensions are bad for your health , don't use them
 
 var g_output_modifiers = [
 	//<hr> -> [hr]
@@ -171,7 +171,8 @@ if (typeof module !== 'undefined' && typeof exports !== 'undefined' && typeof re
 	}
 }
 
-this.makeHtml = function(text) {
+//this.makeHtml = function(text) {
+this.makeBBCode = function(text) {
 //
 // Main function. The order in which other subs are called here is
 // essential. Link and image substitutions need to happen before
@@ -246,6 +247,7 @@ this.makeHtml = function(text) {
 
 	return text;
 };
+
 //
 // Options:
 //
@@ -685,6 +687,10 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
 			}
 		}
 	}
+	//fix a weird bug: (.*)[/code] -> [url=.*]/code[/url]
+	//if the url is not a real url, we don't have to enclose it into tags
+	else if(! /^(https?|ftpe?s?):\/\/(\w+)+\.\w+/.test(url))
+		return whole_match;
 
 	url = escapeCharacters(url,"*_");
 	//orig: var result = "<a href=\"" + url + "\"";
@@ -694,14 +700,6 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
 	//	result +=  " title=\"" + title + "\"";
 	//}
 
-	//original: result += ">" + link_text + "</a>";
-	//if(link_text=="")
-	//	result = "[url]"+url+"[/url]";
-	//else if(url.match(/^https?\:gist\.github\.com\/\w+\/(\w+)$/))
-	//	result = url.replace(/^https?\:gist\.github\.com\/\w+\/(\w+)$/, "[gist]$1[/gist]");
-	//else
-	//	result = "[url="+url+"]"+link_text+"[/url]";
-	//return result;
 	return _buildURL(url, link_text);
 }
 
@@ -1172,7 +1170,8 @@ var _DoGithubCodeBlocks = function(text) {
 
 	text = text.replace(///(?:^|\n)```(.*)\n([\s\S]*?)\n```/g,
 		//we need some code inside triple backticks
-		/(?:^|\n)```(.*)\n([\s\S]+?)\n```/g, 
+		// /(?:^|\n)```(.*)\n([\s\S]+?)\n```/g, 
+		/(?:^|\n)```(.*)\n([\s\S]+?)\n```(\n|$)/g,
 		function(wholeMatch,m1,m2) {
 			console.log("[_DoGithubCodeBlocks] opening a code block, codeblock: ", m2);
 
@@ -1690,6 +1689,6 @@ var togglemultiline = function(){
 var shitconvert=function(){
 	console.log("converting with options: ", conv_opts);
 	var converter = new Showdown.converter(conv_opts);
-	document.getElementById("bb").value=converter.makeHtml(document.getElementById('md').value);
+	document.getElementById("bb").value=converter.makeBBCode(document.getElementById('md').value);
 	return true;
 }
