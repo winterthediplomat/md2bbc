@@ -112,7 +112,7 @@ var g_html_blocks;
 var g_list_level = 0;
 
 // Global extensions
-var g_lang_extensions = []; // extensions are bad for your healt , don't use them
+var g_lang_extensions = []; // extensions are bad for your health , don't use them
 
 var g_output_modifiers = [
 	//<hr> -> [hr]
@@ -171,7 +171,8 @@ if (typeof module !== 'undefined' && typeof exports !== 'undefined' && typeof re
 	}
 }
 
-this.makeHtml = function(text) {
+//this.makeHtml = function(text) {
+this.makeBBCode = function(text) {
 //
 // Main function. The order in which other subs are called here is
 // essential. Link and image substitutions need to happen before
@@ -246,6 +247,7 @@ this.makeHtml = function(text) {
 
 	return text;
 };
+
 //
 // Options:
 //
@@ -1690,6 +1692,6 @@ var togglemultiline = function(){
 var shitconvert=function(){
 	console.log("converting with options: ", conv_opts);
 	var converter = new Showdown.converter(conv_opts);
-	document.getElementById("bb").value=converter.makeHtml(document.getElementById('md').value);
+	document.getElementById("bb").value=converter.makeBBCode(document.getElementById('md').value);
 	return true;
 }
