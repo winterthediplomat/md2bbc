@@ -53,7 +53,7 @@ var showTestInfo = function (testindex){
 }
 
 var updateResults = function (res) {
-	var resLine = "<tr><td>"+res.test_index+"</td><td>"+tests[res.test_index].description+"</td><td class='res_"+res.test_result+"'><a href='#' onclick='showTestInfo("+res.test_index+")'>"+res.test_result+"</a></td></tr></table>"
+	var resLine = "<tr><td>"+res.test_index+"</td><td>"+tests[res.test_index].description+"</td><td class='res_"+res.test_result+"'><a href='#' onclick='showTestInfo("+res.test_index+")'>"+(res.test_result?"PASS":"FAIL")+"</a></td></tr></table>"
 	document.getElementById("results").innerHTML = document.getElementById("results").innerHTML.slice(0, -"</table>".length) + resLine;
 }
 
