@@ -39,7 +39,7 @@ var isTestPassed = function(test){
 		return result;
 	}
 	else{
-		return false; //no tests here
+		return false; //no tests here, can't say it's ok or not
 	}
 }
 
