@@ -3,7 +3,7 @@ var tests = [];
 var loadTests = function(new_tests){
 	if(Array.isArray(new_tests)){
 		for(var t_i=0; t_i<new_tests.length; t_i++)
-			loadTests(new_tests[i]);
+			loadTests(new_tests[t_i]);
 	}
 	else{ //assuming single test
 		tests.push(new_tests);
@@ -48,7 +48,7 @@ var showTestInfo = function (testindex){
 	testInfoDiv.innerHTML = "should you don't see the test cases, run failingMatches("+testindex+") in the console";
 	
 	for(var i=0; i<tests[testindex].expected.length; i++){
-		testInfoDiv.innerHTML+="<br/><pre><code>"+tests[testindex].expected[i]+"<code></pre> &#8593; expected, got &#8595; <pre><code>"+tests[testindex].got[i]+"<code></pre>";
+		testInfoDiv.innerHTML+="<br/><pre><code>"+tests[testindex].expected[i]+"<code></pre> &#8593; expected, got &#8595; <pre><code>"+tests[testindex].got[i]+"<code></pre><hr>";
 	}
 }
 
