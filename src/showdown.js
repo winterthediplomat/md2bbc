@@ -91,15 +91,13 @@ var stdExtName = function(s) {
 // converter
 //
 // Wraps all "globals" so that the only thing
-// exposed is makeHtml().
+// exposed is makeBBCode().
 //
 Showdown.converter = function(converter_options) {
 
 //
 // Globals:
 //
-
-//var converter_options = converter_options;
 
 // Global hashes, used by various utility routines
 var g_urls;
@@ -1294,8 +1292,8 @@ var _DoItalicsAndBold = function(text) {
 		"[b]$2[/b]");
 
 	text = text.replace(///(\*|_)(?=\S)([^\r]*?\S)\1/g,
-		//this change may cause several problems. beware.
-		/(\*|_)(?=\S)([^\]\r]*?\S)\1/g, //now it shouldn't touch [*], aka lists.
+		//now it shouldn't match [*] (lists points)
+		/(\*|_)(?=\S)([^\]\r]*?\S)\1/g,
 		//"<em>$2</em>");
 		"[cur]$2[/cur]");
 
