@@ -600,7 +600,7 @@ var _DoAnchors = function(text) {
 		)()()()()					// pad remaining backreferences
 		/g,_DoAnchors_callback);
 	*/
-	text = text.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\][ ]?(?:\n[ ]*)?\[(.*?)\])()()()()/g,writeAnchorTag);
+	text = text.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\][ ]?(?:\n[ ]*)?\[(.*?)\])()()()/g,writeAnchorTag);
 
 	//
 	// Next, inline-style links: [link text](url "optional title")
@@ -623,17 +623,17 @@ var _DoAnchors = function(text) {
 			()						// no id, so leave $3 empty
 			<?(.*?)>?				// href = $4
 			[ \t]*
-			(						// $5
-				(['"])				// quote char = $6
-				(.*?)				// Title = $7
-				\6					// matching quote
+			(?:
+				(['"])				// quote char = $5
+				(.*?)				// Title = $6
+				\5					// matching quote
 				[ \t]*				// ignore any spaces/tabs between closing quote and )
 			)?						// title is optional
 			\)
 		)
 		/g,writeAnchorTag);
 	*/
-	text = text.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?(.*?(?:\(.*?\).*?)?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g,writeAnchorTag);
+	text = text.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?(.*?(?:\(.*?\).*?)?)>?[ \t]*(?:(['"])(.*?)\6[ \t]*)?\))/g,writeAnchorTag);
 
 	//
 	// Last, handle reference-style shortcuts: [link text]
@@ -647,21 +647,21 @@ var _DoAnchors = function(text) {
 			\[
 			([^\[\]]+)				// link text = $2; can't contain '[' or ']'
 			\]
-		)()()()()()					// pad rest of backreferences
+		)()()()()					// pad rest of backreferences
 		/g, writeAnchorTag);
 	*/
-	text = text.replace(/(\[([^\[\]]+)\])()()()()()/g, writeAnchorTag);
+	text = text.replace(/(\[([^\[\]]+)\])()()()()/g, writeAnchorTag);
 
 	return text;
 }
 
-var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
-	if (m7 == undefined) m7 = "";
+var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
+	if (m6 == undefined) m6 = "";
 	var whole_match = m1;
 	var link_text   = m2;
-	var link_id	 = m3.toLowerCase();
-	var url		= m4;
-	var title	= m7;
+	var link_id     = m3.toLowerCase();
+	var url         = m4;
+	var title       = m6;
 
 	if (url == "") {
 		if (link_id == "") {
@@ -687,7 +687,7 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
 	}
 	//fix a weird bug: (.*)[/code] -> [url=.*]/code[/url]
 	//if the url is not a real url, we don't have to enclose it into tags
-	else if(! /^(https?|ftpe?s?):\/\/(\w+)+\.\w+/.test(url))
+	else if(! /^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/.test(url))
 		return whole_match;
 
 	url = escapeCharacters(url,"*_");
@@ -704,7 +704,7 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
 
 var _DoAutoLinks = function(text) {
 
-	text = text.replace(/<((https?|ftp|dict):[^'">\s]+)>/gi,
+	text = text.replace(/<((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)>/gi, //old regexp: /<((https?|ftp|dict):[^'">\s]+)>/gi
 						//original: "<a href=\"$1\">$1</a>");
 						//before unification of link generation: "[url]$1[/url]");
 						function(wholestring, url){ return _buildURL(url, "")});
@@ -815,10 +815,10 @@ var _DoImages = function(text) {
 			\[
 			(.*?)				// id = $3
 			\]
-		)()()()()				// pad rest of backreferences
+		)()()()					// pad rest of backreferences
 		/g,writeImageTag);
 	*/
-	text = text.replace(/(!\[(.*?)\][ ]?(?:\n[ ]*)?\[(.*?)\])()()()()/g,writeImageTag);
+	text = text.replace(/(!\[(.*?)\][ ]?(?:\n[ ]*)?\[(.*?)\])()()()/g,writeImageTag);
 
 	//
 	// Next, handle inline images:  ![alt text](url "optional title")
@@ -836,27 +836,27 @@ var _DoImages = function(text) {
 			()					// no id, so leave $3 empty
 			<?(\S+?)>?			// src url = $4
 			[ \t]*
-			(					// $5
-				(['"])			// quote char = $6
-				(.*?)			// title = $7
-				\6				// matching quote
+			(?:
+				(['"])			// quote char = $5
+				(.*?)			// title = $6
+				\5				// matching quote
 				[ \t]*
 			)?					// title is optional
 		\)
 		)
 		/g,writeImageTag);
 	*/
-	text = text.replace(/(!\[(.*?)\]\s?\([ \t]*()<?(\S+?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g,writeImageTag);
+	text = text.replace(/(!\[(.*?)\]\s?\([ \t]*()<?((?:ht|f)tps?:\/\/(?:\w+\.)\S+)>?[ \t]*(?:(['"])(.*?)\5[ \t]*)?\))/g,writeImageTag);
 
 	return text;
 }
 
-var writeImageTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
+var writeImageTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	var whole_match = m1;
-	var alt_text   = m2;
-	var link_id	 = m3.toLowerCase();
-	var url		= m4;
-	var title	= m7;
+	var alt_text    = m2;
+	var link_id     = m3.toLowerCase();
+	var url         = m4;
+	var title       = m6;
 
 	if (!title) title = "";
 
