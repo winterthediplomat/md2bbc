@@ -1005,6 +1005,7 @@ var _DoLists = function(text) {
 			// hack that is the HTML block parser.
 			result = result.replace(/\s+$/,"");
 			//result = "<"+list_type+">" + result + "</"+list_type+">\n";
+			console.log("[_DoLists]g_list_level, result:", result);
 			result = "[list]"+result+"[/list]\n";
 			return result;
 		});
@@ -1084,7 +1085,8 @@ _ProcessListItems = function(list_str) {
 			var leading_line = m1;
 			var leading_space = m2;
 
-			if (leading_line || (item.search(/\n{2,}/)>-1)) {
+			//handle the quotes into lists in the "sane" way, but only if requested.
+			if (leading_line || (item.search(/\n{2,}/)>-1) || (converter_options && converter_options.check_quotes_into_lists) ) {
 				item = _RunBlockGamut(_Outdent(item));
 			}
 			else {
@@ -1094,8 +1096,9 @@ _ProcessListItems = function(list_str) {
 				item = _RunSpanGamut(item);
 			}
 
+
 			//return  "<li>" + item + "</li>\n";
-			console.log('[_ProcessItemList] item: '+item);
+			console.log('[_ProcessListItems] item: '+item);
 			return "[*] "+item+"\n";
 		}
 	);
@@ -1387,7 +1390,7 @@ var _DoBlockQuotes = function(text) {
 							}
 							return line;
 						}
-					)
+					);
 				return bq+(into_quotes?"[/quote]":"")+"\n";
 			}
 			else{
@@ -1478,6 +1481,8 @@ var _FormParagraphs = function(text) {
 			grafsOut[i] = grafsOut[i].replace(/~K\d+K/,blockText);
 		}
 	}
+
+	console.log("[_FormParagraphs] grafsOut:", grafsOut);
 
 	return grafsOut.join("\n\n");
 }
@@ -1677,11 +1682,17 @@ if (typeof define === 'function' && define.amd) {
 // Showdown usage:
 //
 
-conv_opts = {multiline_quoting: false};
+conv_opts = {multiline_quoting: false, check_quotes_into_lists: false};
 
 var togglemultiline = function(){
 	conv_opts.multiline_quoting = !conv_opts.multiline_quoting;
 	console.log("(un)checked, now ", conv_opts);
+}
+
+var togglequotesintolists = function(){
+	conv_opts.check_quotes_into_lists = !conv_opts.check_quotes_into_lists;
+	console.log("(un)checked, now ", conv_opts);
+
 }
 
 var shitconvert=function(){
