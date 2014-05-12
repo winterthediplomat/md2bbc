@@ -37,7 +37,7 @@ loadTests([
 	options: null
 },
 {
-	description: "lists - quotes into lists - using quotes_into_lists",
+	description: "lists - quotes into lists - using check_quotes_into_lists",
 	starting_text: [
 					"* Asagi\n* Charlotte \n* >Tsurugi\n>not goddess",
 					],
