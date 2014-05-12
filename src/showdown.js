@@ -846,17 +846,17 @@ var _DoImages = function(text) {
 		)
 		/g,writeImageTag);
 	*/
-	text = text.replace(/(!\[(.*?)\]\s?\([ \t]*()<?(\S+?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g,writeImageTag);
+	text = text.replace(/(!\[(.*?)\]\s?\([ \t]*()<?((?:(?:https?)|ftp):\/\/(?:\w+\.)\S+)>?[ \t]*(?:(?:['"])(.*?)\6[ \t]*)?\))/g,writeImageTag);
 
 	return text;
 }
 
-var writeImageTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {
+var writeImageTag = function(wholeMatch,m1,m2,m3,m4,m5) {
 	var whole_match = m1;
 	var alt_text   = m2;
 	var link_id	 = m3.toLowerCase();
 	var url		= m4;
-	var title	= m7;
+	var title	= m5;
 
 	if (!title) title = "";
 
