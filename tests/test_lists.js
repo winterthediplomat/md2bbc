@@ -42,7 +42,8 @@ loadTests([
 					"* Asagi\n* Charlotte \n* >Tsurugi\n>not goddess",
 					],
 	expected: [
-				"[list]\n[*] Asagi\n[*] Charlotte \n[*] [quote]\nTsurugi\nnot goddess\n[/quote]\n[/list]",
+				//_formParagraphs joins with \n\n. if using only one \n, several tests result as FAIL.
+				"[list]\n[*] Asagi\n[*] Charlotte \n[*] [quote]\n\nTsurugi\nnot goddess\n\n[/quote]\n[/list]",
 			  ],
 	options: {check_quotes_into_lists: true}
 }

@@ -1005,6 +1005,7 @@ var _DoLists = function(text) {
 			// hack that is the HTML block parser.
 			result = result.replace(/\s+$/,"");
 			//result = "<"+list_type+">" + result + "</"+list_type+">\n";
+			console.log("[_DoLists]g_list_level, result:", result);
 			result = "[list]"+result+"[/list]\n";
 			return result;
 		});
@@ -1085,7 +1086,7 @@ _ProcessListItems = function(list_str) {
 			var leading_space = m2;
 
 			//handle the quotes into lists in the "sane" way, but only if requested.
-			if (leading_line || (item.search(/\n{2,}/)>-1) || (converter_options && converter_options.check_quotes_into_lists)) {
+			if (leading_line || (item.search(/\n{2,}/)>-1) || (converter_options && converter_options.check_quotes_into_lists) ) {
 				item = _RunBlockGamut(_Outdent(item));
 			}
 			else {
@@ -1097,7 +1098,7 @@ _ProcessListItems = function(list_str) {
 
 
 			//return  "<li>" + item + "</li>\n";
-			console.log('[_ProcessItemList] item: '+item);
+			console.log('[_ProcessListItems] item: '+item);
 			return "[*] "+item+"\n";
 		}
 	);
@@ -1480,6 +1481,8 @@ var _FormParagraphs = function(text) {
 			grafsOut[i] = grafsOut[i].replace(/~K\d+K/,blockText);
 		}
 	}
+
+	console.log("[_FormParagraphs] grafsOut:", grafsOut);
 
 	return grafsOut.join("\n\n");
 }
