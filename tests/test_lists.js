@@ -17,7 +17,7 @@ loadTests([
 					"* Asagi\n* Charlotte \n* >Tsurugi\n>not goddess",
 					],
 	expected: [
-				"[list]\n[*] Asagi\n[*] Charlotte \n[*] [quote]Tsurugi\nnot goddess\n[/list]\n[/quote]",
+				"[list]\n[*] Asagi\n[*] Charlotte \n[*] [quote]Tsurugi\nnot goddess\n[/quote]\n[/list]",
 			  ],
 	options: null
 },
