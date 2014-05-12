@@ -32,17 +32,17 @@ loadTests([
 				</ul></p>
 				</blockquote>
 	            */
-				"[list]\n[*] Asagi\n[*] Charlotte \n[*] >Tsurugi\n\n[quote]not goddess\n[/list]\n[/quote]",
+				"[list]\n[*] Asagi\n[*] Charlotte \n[*] >Tsurugi\n\n[quote]\nnot goddess\n[/list]\n[/quote]",
 			  ],
 	options: null
 },
 {
-	description: "lists - quotes into lists - using check_quotes_into_lists",
+	description: "lists - quotes into lists - using quotes_into_lists",
 	starting_text: [
 					"* Asagi\n* Charlotte \n* >Tsurugi\n>not goddess",
 					],
 	expected: [
-				"[list]\n[*] Asagi\n[*] Charlotte \n[*] [quote]Tsurugi\nnot goddess\n[/quote]\n[/list]",
+				"[list]\n[*] Asagi\n[*] Charlotte \n[*] [quote]\nTsurugi\nnot goddess\n[/quote]\n[/list]",
 			  ],
 	options: {check_quotes_into_lists: true}
 }
