@@ -36,8 +36,8 @@ loadTests([
 					"**asd**",
 					"[code=sh]find .*.* | grep torrent$[/code]",
 					"[url]**muh text!**[/url]",
-					"[m]\sqrt-1 * \frac{5}{b*2*3}-q_a_d[/m]",
-					"[math]\sqrt-1 * \frac{5}{b*2*3}-q_a_d[/math]"
+					"[m]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/m]",
+					"[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/math]"
 					],
 	expected: [
 				"[gist]7cc354929eb3d8817857[/gist] [url=http://nwa]<http://google.com>[/url]", 
@@ -47,8 +47,8 @@ loadTests([
 				"[b]asd[/b]",
 				"[code=sh]find .*.* | grep torrent$[/code]",
 				"[url][b]muh text![/b][/url]",
-				"[m]\sqrt-1 * \frac{5}{b*2*3}-q_a_d[/m]",
-				"[math]\sqrt-1 * \frac{5}{b*2*3}-q_a_d[/math]"
+				"[m]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/m]",
+				"[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/math]"
  			  ],
 	options: {recognize_bbcode: true}
 }
