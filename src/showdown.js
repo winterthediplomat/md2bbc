@@ -1754,7 +1754,7 @@ if (typeof define === 'function' && define.amd) {
 // Showdown usage:
 //
 
-conv_opts = {multiline_quoting: false, check_quotes_into_lists: false};
+conv_opts = {multiline_quoting: false, check_quotes_into_lists: false, recognize_bbcode: false};
 
 var togglemultiline = function(){
 	conv_opts.multiline_quoting = !conv_opts.multiline_quoting;
@@ -1764,7 +1764,12 @@ var togglemultiline = function(){
 var togglequotesintolists = function(){
 	conv_opts.check_quotes_into_lists = !conv_opts.check_quotes_into_lists;
 	console.log("(un)checked, now ", conv_opts);
+}
 
+
+var togglebbcode = function(){
+	conv_opts.recognize_bbcode = !conv_opts.recognize_bbcode;
+	console.log("(un)checked, now ", conv_opts);
 }
 
 var shitconvert=function(){
