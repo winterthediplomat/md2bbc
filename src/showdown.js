@@ -52,7 +52,7 @@
 //   var text = "Markdown *rocks*.";
 //
 //   var converter = new Showdown.converter();
-//   var html = converter.makeHtml(text);
+//   var html = converter.makeBBCode(text);
 //
 //   alert(html);
 //
@@ -110,7 +110,60 @@ var g_html_blocks;
 var g_list_level = 0;
 
 // Global extensions
-var g_lang_extensions = []; // extensions are bad for your health , don't use them
+var g_lang_extensions = [ // extensions are bad for your health , don't use them
+	//[m]
+	{
+		type:'lang',
+		regex: "\\\[m\\\](.+)\\\[\/m\\\]",
+		replace: function(wholematch, opentag, content, closetag){
+			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
+			//console.log("[lang_extension::noshitsherlock] content", content);
+			if (converter_options.recognize_bbcode)
+				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			else
+				return wholematch;
+		}
+	},
+	//[math]
+	{
+		type:'lang',
+		regex: "\\\[math\\\](.+)\\\[\/math\\\]",
+		replace: function(wholematch, opentag, content, closetag){
+			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
+			//console.log("[lang_extension::noshitsherlock] content", content);
+			if(converter_options.recognize_bbcode)
+				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			else
+				return wholematch;
+		}
+	},
+	//[code]
+	{
+		type:'lang',
+		regex: "\\\[code=.+\\\](.+)\\\[\/code\\\]",
+		replace: function(wholematch, content){
+			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
+			//console.log("[lang_extension::noshitsherlock] content", content);
+			if(converter_options.recognize_bbcode)
+				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			else
+				return wholematch;
+		}
+	},
+	//[url]
+	{
+		type:'lang',
+		regex: /\[url(\=(.*))?\](.*)\[\/url\]/g,
+		replace: function(wholematch, goturl, url, content){
+			console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
+			console.log("[lang_extension::noshitsherlock] content", content);
+			if (converter_options.recognize_bbcode)
+				return wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			else
+				return wholematch;
+		}
+	},
+];
 
 var g_output_modifiers = [
 	//<hr> -> [hr]
@@ -142,6 +195,21 @@ var g_output_modifiers = [
 		regex: "&lt;",
 		replace: function(match){
 			return "<";
+		}
+	},
+	//these are added only when recognize_bbcode is set to true.
+	{
+		type: "lang",
+		regex: "~S",
+		replace: function(match){
+			return "*";
+		}
+	},
+	{
+		type: "lang",
+		regex: "~U",
+		replace: function(match){
+			return "_";
 		}
 	},
 ];
@@ -287,7 +355,11 @@ if (converter_options && converter_options.extensions) {
 
 var _ExecuteExtension = function(ext, text) {
 	if (ext.regex) {
-		var re = new RegExp(ext.regex, 'g');
+		try{
+			var re = new RegExp(ext.regex, 'g');
+		}catch(TypeError){ //ext.regex is a regex, can't supply flags
+			var re = ext.regex;
+		}
 		return text.replace(re, ext.replace);
 	} else if (ext.filter) {
 		return ext.filter(text);
@@ -909,11 +981,11 @@ var _DoHeaders = function(text) {
 	//
 	text = text.replace(/^(.+)[ \t]*\n=+[ \t]*\n+/gm,
 		//function(wholeMatch,m1){return hashBlock('<h1 id="' + headerId(m1) + '">' + _RunSpanGamut(m1) + "</h1>");});
-        function(wholeMatch, m1){return hashBlock("[big]"+_RunSpanGamut(m1)+"[/big]");});
+		function(wholeMatch, m1){return hashBlock("[big]"+_RunSpanGamut(m1)+"[/big]");});
 
 	text = text.replace(/^(.+)[ \t]*\n-+[ \t]*\n+/gm,
 		//function(matchFound,m1){return hashBlock('<h2 id="' + headerId(m1) + '">' + _RunSpanGamut(m1) + "</h2>");});
-        function(matchFound, m1){return hashBlock("[big]"+_RunSpanGamut(m1)+"[/big]");});
+		function(matchFound, m1){return hashBlock("[big]"+_RunSpanGamut(m1)+"[/big]");});
 
 	// atx-style headers:
 	//  # Header 1
