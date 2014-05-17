@@ -7,14 +7,16 @@ loadTests([
 					"<https://gist.github.com/alfateam123/8055226>",
 					"[cur]asd[/cur]",
 					"[cur]**asd**[/cur]",
-					"**asd**"
+					"**asd**",
+					"saafa _asdasd_\n[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_ad[/math]_\n[cur]**asd**[/cur]\n[url=http://google.com]<http://alfateam123.niggazwithattitu.de>[/url]"
 					],
 	expected: [
 				"[gist]7cc354929eb3d8817857[/gist] [url=http://nwa][url]http://google.com[/url][/url]", 
 				"[gist]8055226[/gist]", 
 				"[cur]asd[/cur]",
 				"[cur][b]asd[/b][/cur]",
-				"[b]asd[/b]"
+				"[b]asd[/b]",
+				"saafa [cur]asdasd[/cur]\n[math]\\sqrt-1 * \\frac{5}{b[cur]2[/cur]3}-q[cur]ad[/math][/cur]\n[cur][b]asd[/b][/cur]\n[url=http://google.com][url]http://alfateam123.niggazwithattitu.de[/url][/url]"
 			  ],
 	options: null
 },
@@ -37,7 +39,8 @@ loadTests([
 					"[code=sh]find .*.* | grep torrent$[/code]",
 					"[url]**muh text!**[/url]",
 					"[m]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/m]",
-					"[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/math]"
+					"[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/math]",
+					"saafa _asdasd_\n[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_ad[/math]_\n[cur]**asd**[/cur]\n[url=http://google.com]<http://alfateam123.niggazwithattitu.de>[/url]"
 					],
 	expected: [
 				"[gist]7cc354929eb3d8817857[/gist] [url=http://nwa]<http://google.com>[/url]", 
@@ -48,7 +51,8 @@ loadTests([
 				"[code=sh]find .*.* | grep torrent$[/code]",
 				"[url][b]muh text![/b][/url]",
 				"[m]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/m]",
-				"[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/math]"
+				"[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/math]",
+				"saafa [cur]asdasd[/cur]\n[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_ad[/math]_\n[cur][b]asd[/b][/cur]\n[url=http://google.com]<http://alfateam123.niggazwithattitu.de>[/url]"
  			  ],
 	options: {recognize_bbcode: true}
 }
