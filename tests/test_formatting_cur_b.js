@@ -1,6 +1,5 @@
-loadTests({
-	description: "formatting - [cur], [b]",
-	starting_text: [
+test("formatting - [cur], [b]", function(){
+	var starting_text= [
 					"_yay_",
 					"*yay*",
 					"**yay**",
@@ -16,7 +15,7 @@ loadTests({
 					"lol no underscores",
 					"*first* _second_"
 					],
-	expected: [
+	expected= [
 				//the normal behaviour is this (tested against daringfireball dingus)
 				"[cur]yay[/cur]",
 				"[cur]yay[/cur]",
@@ -32,6 +31,13 @@ loadTests({
 				"perform[cur]complicated[/cur]task", //github: perform_complicated_task
 				"lol no underscores",
 				"[cur]first[/cur] [cur]second[/cur]"
-			  ],
-	options: null
+			  ];
+	var conv = new Showdown.converter();
+	for(var i = 0; i<starting_text.length; i++){
+		deepEqual(
+			expected[i],
+			conv.makeBBCode(starting_text[i])
+			//starting_text+" => "+expected
+			);
+	}
 });
