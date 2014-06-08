@@ -99,6 +99,8 @@ Showdown.converter = function(converter_options) {
 // Globals:
 //
 
+converter_options = converter_options || {};
+
 // Global hashes, used by various utility routines
 var g_urls;
 var g_titles;
@@ -155,8 +157,8 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: /\[url(\=(.*))?\](.*)\[\/url\]/g,
 		replace: function(wholematch, goturl, url, content){
-			console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			console.log("[lang_extension::noshitsherlock] content", content);
+			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
+			//console.log("[lang_extension::noshitsherlock] content", content);
 			if (converter_options.recognize_bbcode)
 				return wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			else
