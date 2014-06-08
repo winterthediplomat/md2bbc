@@ -164,7 +164,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 			else
 				return wholematch;
 		}
-	},
+	}
 ];
 
 var g_output_modifiers = [
@@ -213,7 +213,7 @@ var g_output_modifiers = [
 		replace: function(match){
 			return "_";
 		}
-	},
+	}
 ];
 
 
@@ -808,63 +808,34 @@ var _DoAutoLinks = function(text) {
 
 var _buildURL = function(url, text){
 	console.log("[_buildURL] url: "+url+" text: "+text);
-
+	var match;
 	// Gist
-	if (url.indexOf("gist.github.com") !== -1) {
-		[wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/) || [];
-		if (gistId) return "[gist]" + gistId + "[/gist]";
-	}
+	if (match = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/))
+		return "[gist]" + match[1] + "[/gist]";
 	// Wikipedia article
-	if (url.indexOf(".wikipedia.org/wiki/") !== -1) {
-		[wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/) || [];
-		if (lang && argument) return "[wiki=" + lang + "]" + argument.replace(/~E95E/g," ") + "[/wiki]";
-	}
+	else if (match = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/))
+		return "[wiki=" + match[1] + "]" + match[2].replace (/~E95E/g," ") + "[/wiki]";
 	// Twitter
-	if (url.indexOf("twitter.com") !== -1) {
-		[wholeMatch, tweetID] = url.match(/https?:\/\/twitter\.com\/[^\/]+\/status\/([0-9]+)/) || [];
-		if (tweetID) return "[twitter]" + tweetID + "[/twitter]";
-	}
-	// YouTube
-	if (url.indexOf("youtube.com/watch?") !== -1 || url.indexOf("youtu.be/") !== -1) {
-		if (/^(https?:\/\/)?(www\.)?((youtube\.com\/watch\?(.+&)?v=)|(youtu\.be\/))[\w_-~]+(&.+)?$/.test(url))
-			return "[video]" + url + "[/video]";
-	}
-	// Facebook
-	if (url.indexOf("facebook.com/photo.php?v=") !== -1) {
-		if (/^https?:\/\/www\.facebook\.com\/photo\.php\?v=(\d+)$/.test(url))
-			return "[video]" + url + "[/video]";
-	}
-	// Dailymotion
-	if (url.indexOf("dailymotion.com/video/") !== -1 || url.indexOf("dai.ly/") !== -1) {
-		if (/^https?:\/\/(www\.dailymotion\.com\/video)|(dai\.ly)\/\w+$/.test(url))
-			return "[video]" + url + "[/video]";
-	}
-	// Vimeo
-	if (url.indexOf("vimeo.com") !== -1) {
-		if (/^https?:\/\/vimeo\.com\/\d+$/.test(url))
-			return "[video]" + url + "[/video]";
-	}
+	else if (match = url.match(/https?:\/\/twitter\.com\/[^\/]+\/status\/([0-9]+)/))
+		return "[twitter]" + match[1] + "[/twitter]";
+	// YouTube, Facebook, Dailymotion, Vimeo
+	else if (match = (url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch(?:\?v=|\?.+?&v=)|youtu\.be\/)[a-zA-Z0-9_-~]+/) ||
+					  url.match(/https?:\/\/(?:www\.)?facebook\.com\/photo\.php(?:\?v=|\?.+?&v=)\d+/) ||
+					  url.match(/https?:\/\/(?:www\.)?(?:dai\.ly\/|dailymotion\.com\/(?:.+?video=|(?:video|hub)\/))[a-z0-9]+/) ||
+					  url.match(/https?:\/\/(?:www\.)?vimeo\.com.+?\d+/)))
+		return "[video]" + match[0] + "[/video]";
 	// Spotify
-	if (url.indexOf("spotify.com") !== -1) {
-		[wholeMatch, spotifyID] = url.match(/^https?:\/\/(?:play|open)\.spotify\.com\/track\/(\w+)$/) || [];
-		if (spotifyID) return "[music]spotify:track:" + spotifyID + "[/music]";
-	}
-	// Soundcloud
-	if (url.indexOf("soundcloud.com")  !== -1) {
-		if (/^https?:\/\/soundcloud\.com\/[\w-]+\/[\w-]+$/.test(url))
-			return "[music]" + url + "[/music]";
-	}
-	// Deezer
-	if (url.indexOf("deezer.com")  !== -1) {
-		if (/^https?:\/\/(www\.)?deezer\.com\/(album|track|playlist)\/\d+$/.test(url))
-			return "[music]" + url + "[/music]";
-	}
-
+	else if (match = url.match(/^https?:\/\/(?:open|play)\.spotify\.com\/track\/([\w\d]+)$/))
+		return "[music]spotify:track:" + match[1] + "[/music]";
+	// Soundcloud, Deezer
+	else if (match = (url.match (/https?:\/\/soundcloud\.com\/\S+\/\S+/) ||
+					  url.match (/https?:\/\/(?:www\.)?deezer\.com\/(track|album|playlist)\/(\d+)/)))
+		return "[music]" + match[0] + "[/music]";
 	// Url without text (no hyperlinked text)
-	if (text == "")
+	else if (text == "")
 		return "[url]" + url + "[/url]";
-
-	return "[url=" + url + "]" + text + "[/url]";
+	else
+		return "[url=" + url + "]" + text + "[/url]";
 }
 
 var _DoImages = function(text) {
