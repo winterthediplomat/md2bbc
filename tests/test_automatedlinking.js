@@ -6,7 +6,8 @@ test("automated linking",function(){
 					"nerdz.eu",
 					"**test**",
 					"http://google.com/test.pl?test=5",
-					"in a http://rubular.com test"
+					"in a http://rubular.com test",
+					"test [url=http://google.com]http://google.com[/url]"
 					],
 	expected= [
 				"[gist]7cc354929eb3d8817857[/gist]",
@@ -15,7 +16,8 @@ test("automated linking",function(){
 				"nerdz.eu",
 				"[b]test[/b]",
 				"[url]http://google.com/test.pl?test=5[/url]",
-				"in a [url]http://rubular.com[/url] test"
+				"in a [url]http://rubular.com[/url] test",
+				"test [url=http://google.com]http://google.com[/url]"
 			  ];
 	var conv = new Showdown.converter({enable_autolinking:true});
 	for(var i = 0; i<starting_text.length; i++){

@@ -122,9 +122,11 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
 			if (converter_options.recognize_bbcode)
-				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if(converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	},
 	//[math]
@@ -134,10 +136,12 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		replace: function(wholematch, opentag, content, closetag){
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
-			if(converter_options.recognize_bbcode)
-				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+			if (converter_options.recognize_bbcode)
+				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	},
 	//[code]
@@ -147,9 +151,9 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		replace: function(wholematch, content){
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
-			if(converter_options.recognize_bbcode)
+			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			if(converter_options.enable_autolinking)
+			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
 						function(url){return url.replace(/\/\//, "\\\\")});
 			return wholematch;
@@ -163,9 +167,11 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
 			if (converter_options.recognize_bbcode)
-				return wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+				wholematch = wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	}
 ];
