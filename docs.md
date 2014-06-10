@@ -43,6 +43,10 @@ If set to true, the converter will take care of quotes used inside list' text.
 The original implementation of Markdown does not check that and closes the list (`</ul>`) before closing the `<blockquote>` tag.
 I suggest to set it to true.
 
+* `enable_autolinking`
+If set to true, bare links will be automatically turned into urls.
+If you write something like `muh http://google.com`, you'll get `muh [url]http://google.com[/url]`, without inserting the angle brackets. They're still recognized (and recommended).
+
 ### Charlotte, what are you doing? You're too kawaii for that! ###
 
 We can assure that Charlotte is best girl, and she's 2cute4u too.
