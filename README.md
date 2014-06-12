@@ -21,7 +21,7 @@ You can read more in the @[Tutorial](docs/tutorial.md), or read the @[Reference]
 Fortunately, md2bbc does not need any external library to work.
 The tests may require to use QUnit.js, the testing library built for the jquery project.
 
-Talking about browser support... John Frasier (the original developer of the library) [supported a lot of old browsers](https://github.com/coreyti/showdown/#browser-compatibility).  
+Talking about browser support... John Fraser (the original developer of the library) [supported a lot of old browsers](https://github.com/coreyti/showdown/#browser-compatibility).  
 We try to support them too, you can just try to run the [tests](http://alfateam123.github.io/md2bbc) and see it something becomes red.
 
 ### notes ###
