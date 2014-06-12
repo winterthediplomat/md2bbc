@@ -99,6 +99,7 @@ Showdown.converter = function(converter_options) {
 // Globals:
 //
 
+//giving a default for converter_options
 converter_options = converter_options || {};
 
 // Global hashes, used by various utility routines
@@ -121,9 +122,11 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
 			if (converter_options.recognize_bbcode)
-				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if(converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	},
 	//[math]
@@ -133,10 +136,12 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		replace: function(wholematch, opentag, content, closetag){
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
-			if(converter_options.recognize_bbcode)
-				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+			if (converter_options.recognize_bbcode)
+				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	},
 	//[code]
@@ -146,10 +151,12 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		replace: function(wholematch, content){
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
-			if(converter_options.recognize_bbcode)
-				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+			if (converter_options.recognize_bbcode)
+				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	},
 	//[url]
@@ -160,9 +167,11 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
 			if (converter_options.recognize_bbcode)
-				return wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+				wholematch = wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	}
 ];
@@ -212,6 +221,14 @@ var g_output_modifiers = [
 		regex: "~U",
 		replace: function(match){
 			return "_";
+		}
+	},
+	//this are set only when enable_autolinking is set to true
+	{
+		type: "lang",
+		regex: /^(https?|ftpe?s?):\\\\(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+		replace: function(match){
+			return match.replace(/\\\\/, "//");
 		}
 	}
 ];
@@ -292,6 +309,7 @@ this.makeBBCode = function(text) {
 	// Handle github codeblocks prior to running HashHTML so that
 	// HTML contained within the codeblock gets escaped propertly
 	text = _DoGithubCodeBlocks(text);
+
 
 	// Turn block-level HTML blocks into hash entries
 	text = _HashHTMLBlocks(text);
@@ -608,6 +626,7 @@ var _RunSpanGamut = function(text) {
 	text = _DoImages(text);
 	text = _DoAnchors(text);
 
+
 	// Make links out of things like `<http://example.com/>`
 	// Must come after _DoAnchors(), because you can use < and >
 	// delimiters in inline links like [this](<url>).
@@ -615,6 +634,7 @@ var _RunSpanGamut = function(text) {
 	text = _EncodeAmpsAndAngles(text);
 	text = _DoItalicsAndBold(text);
 	// Custom handlers
+	text = _DoUrlRecognition(text);
 	text = _DoStrikes(text);
 	text = _DoUsers(text);
 	text = _DoProjects(text);
@@ -775,6 +795,18 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	return _buildURL(url, link_text);
 }
 
+
+var _DoUrlRecognition = function(text){
+	if(converter_options && converter_options.enable_autolinking)
+		return text.replace(/(^|\s)((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)(\s|$)/gi,
+			function(wholestring, start_, url, args){
+				console.log("[_DoUrlRecognition]", wholestring, start_, url, args);
+				return start_+"[url]"+url+"[/url]"+(wholestring.match(" $")?" ":"");
+			}
+		);
+	else
+		return text;
+}
 
 var _DoAutoLinks = function(text) {
 
@@ -1720,34 +1752,4 @@ if (typeof define === 'function' && define.amd) {
 	define('showdown', function() {
 		return Showdown;
 	});
-}
-
-
-//
-// Showdown usage:
-//
-
-conv_opts = {multiline_quoting: false, check_quotes_into_lists: false, recognize_bbcode: false};
-
-var togglemultiline = function(){
-	conv_opts.multiline_quoting = !conv_opts.multiline_quoting;
-	console.log("(un)checked, now ", conv_opts);
-}
-
-var togglequotesintolists = function(){
-	conv_opts.check_quotes_into_lists = !conv_opts.check_quotes_into_lists;
-	console.log("(un)checked, now ", conv_opts);
-}
-
-
-var togglebbcode = function(){
-	conv_opts.recognize_bbcode = !conv_opts.recognize_bbcode;
-	console.log("(un)checked, now ", conv_opts);
-}
-
-var shitconvert=function(){
-	console.log("converting with options: ", conv_opts);
-	var converter = new Showdown.converter(conv_opts);
-	document.getElementById("bb").value=converter.makeBBCode(document.getElementById('md').value);
-	return true;
 }

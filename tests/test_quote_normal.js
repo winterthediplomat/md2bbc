@@ -15,4 +15,4 @@ test("quote - normal behaviour", function(){
 			//starting_text+" => "+expected
 			);
 	}
-})
+});
