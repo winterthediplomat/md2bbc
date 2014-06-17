@@ -2,7 +2,10 @@ from os import walk, path
 
 test_cases = []
 
+#print "oh, hi!"
+
 for act, dirs, files in walk("../tests/from_showdown/"):
+    #print act, dirs, files
     my_files = sorted(
     	set(
     		map(
@@ -13,7 +16,9 @@ for act, dirs, files in walk("../tests/from_showdown/"):
     )
     # MOAR PARENTESI PLS
     for f in my_files:
-        md_text, res_text = open(f+".md").read(), open(f+".html").read()
+        # print (f)
+        md_text, res_text = open(path.join("../tests/from_showdown", f+".md")).read(), open(path.join("../tests/from_showdown", f+".bbcode")).read()
+        #print( res_text.strip().replace("\n", "\\n").replace("\"", "\\\"") )
         test_cases.append("""
 strictEqual(
     conv.makeBBCode("%s"),
@@ -26,8 +31,8 @@ strictEqual(
 )
         	
 
-print """test("from showdown", function(){
+open(path.join("../tests", "test_from_showdown.js"), "w").write("""test("from showdown", function(){
 	var conv = new Showdown.converter();
 	%s
 });
-"""%("\n".join(test_cases))
+"""%("\n".join(test_cases)))
