@@ -15,7 +15,7 @@ var bbcode = converter.makeBBCode(text); //converting your text
 alert(bbcode);
 ```
 
-read the @[Tutorial](docs/tutorial.md) to read more about the usage of md2bbc.
+read the Tutorial to read more about the usage of md2bbc.
 
 ### Converter Options ###
 
