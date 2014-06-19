@@ -43,7 +43,9 @@ def build_testpage(js_path):
 if __name__=="__main__":
     readablejs_path = '../src/showdown.js'
     minifiedjs_path = "../src/showdown.min.js"
-    minify_js(readablejs_path, minifiedjs_path)
+
+    if len(sys.argv)==1 or sys.argv[1] != '--no-minify':
+        minify_js(readablejs_path, minifiedjs_path)
 
     open("../tests/test.html", "w").write(build_testpage(readablejs_path))
     open("../tests/test_min.html", "w").write(build_testpage(minifiedjs_path))
