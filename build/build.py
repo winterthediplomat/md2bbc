@@ -9,7 +9,7 @@ def minify_js(readablejs_path, minifiedjs_path):
 
     params = urllib.urlencode([
         ('js_code', open(readablejs_path).read()),
-        ('compilation_level', 'SIMPLE'),
+        ('compilation_level', 'SIMPLE_OPTIMIZATIONS'),
         ('output_format', 'text'),
         ('output_info', 'compiled_code'),
       ])
@@ -43,7 +43,7 @@ def build_testpage(js_path):
 if __name__=="__main__":
     readablejs_path = '../src/showdown.js'
     minifiedjs_path = "../src/showdown.min.js"
-    #minify_js(readablejs_path, minifiedjs_path)
+    minify_js(readablejs_path, minifiedjs_path)
 
     open("../tests/test.html", "w").write(build_testpage(readablejs_path))
     open("../tests/test_min.html", "w").write(build_testpage(minifiedjs_path))
