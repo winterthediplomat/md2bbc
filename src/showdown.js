@@ -119,8 +119,8 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: "\\\[m\\\](.+)\\\[\/m\\\]",
 		replace: function(wholematch, opentag, content, closetag){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
+			console.log("[lang_extension::m] wholematch", wholematch);
+			console.log("[lang_extension::m] content", content);
 			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if(converter_options.enable_autolinking)
@@ -134,8 +134,8 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: "\\\[math\\\](.+)\\\[\/math\\\]",
 		replace: function(wholematch, opentag, content, closetag){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
+			console.log("[lang_extension::math] wholematch", wholematch);
+			console.log("[lang_extension::math] content", content);
 			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
@@ -149,8 +149,9 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: "\\\[code=.+\\\](.+)\\\[\/code\\\]",
 		replace: function(wholematch, content){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
+			console.log("[lang_extension::code] wholematch", wholematch);
+			console.log("[lang_extension::code] content", content);
+			console.log("[lang_extension::code] converter_options", converter_options);
 			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
@@ -164,8 +165,8 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: /\[url(\=(.*))?\](.*)\[\/url\]/g,
 		replace: function(wholematch, goturl, url, content){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
+			console.log("[lang_extension::url] wholematch", wholematch);
+			console.log("[lang_extension::url] content", content);
 			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
@@ -935,6 +936,8 @@ var writeImageTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	var url         = m4;
 	var title       = m6;
 
+	console.log("[writeImageTag]", whole_match, alt_text, link_id, url, title);
+
 	if (!title) title = "";
 
 	if (url == "") {
@@ -1220,7 +1223,8 @@ var _DoCodeBlocks = function(text) {
 			codeblock = codeblock.replace(/\n+$/g,""); // trim trailing whitespace
 
 			//original: codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
-			codeblock = "[code]"+codeblock+"[/code]";
+			//assuming "code" as a generic language
+			codeblock = "[code=code]"+codeblock+"[/code]";
 			return hashBlock(codeblock) + nextChar;
 		}
 	);

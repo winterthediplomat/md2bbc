@@ -70,3 +70,26 @@ test("github code: don't recognize urls inside code",function(){
 			);
 	}
 });
+
+test("4-spaced code ",function(){
+	var starting_text = [
+					//"```perl\nuse Data::Dumper;\nprint Dumper($val);\nfor my $lol (@unrecognized){\n  #thenopeproject\n}\nprint **lolololol**\nprint \"do you wanna use ` ?\";\nprint `find .`;\n\n```sh\nls | grep html\n```",
+					"    use Data::Dumper;\n    print Dumper($val);\n    for my $lol (@unrecognized){\n      #thenopeproject\n    }\n    print **lolololol**\n    print \"do you wanna use ` ?\";\n    print `find .`;\n\n    ```sh\n    ls | grep html\n    ```",
+					//"```perl\nuse Data::Dumper;\nprint Dumper($val);\nfor my $lol (@unrecognized){\n  #thenopeproject\n}\nprint **lolololol**\nprint \"do you wanna use ` ?\";\nprint `find .`;\n\n```\nsh\nls | grep html\n```"
+					"    use Data::Dumper;\n    print Dumper($val);\n    for my $lol (@unrecognized){\n      #thenopeproject\n    }\n    print **lolololol**\n    print \"do you wanna use ` ?\";\n    print `find .`;\n\n    ```\n    sh\n    ls | grep html\n    ```"
+					],
+	expected = [
+				//"[code=code]\nuse Data::Dumper;\nprint Dumper($val);\nfor my $lol (@unrecognized){\n  #thenopeproject\n}\nprint **lolololol**\nprint \"do you wanna use ` ?\";\nprint `find .`;\n\n```sh\nls | grep html\n[/code]",
+				"[code=code]use Data::Dumper;\nprint Dumper($val);\nfor my $lol (@unrecognized){\n  #thenopeproject\n}\nprint **lolololol**\nprint \"do you wanna use ` ?\";\nprint `find .`;\n\n```sh\nls | grep html\n```[/code]",
+				//"[code=perl]\nuse Data::Dumper;\nprint Dumper($val);\nfor my $lol (@unrecognized){\n  #thenopeproject\n}\nprint **lolololol**\nprint \"do you wanna use ` ?\";\nprint `find .`;\n[/code]sh\nls | grep html\n```"
+				"[code=code]use Data::Dumper;\nprint Dumper($val);\nfor my $lol (@unrecognized){\n  #thenopeproject\n}\nprint **lolololol**\nprint \"do you wanna use ` ?\";\nprint `find .`;\n\n```\nsh\nls | grep html\n```[/code]"
+			  ];
+	var conv = new Showdown.converter();
+	for(var i = 0; i<starting_text.length; i++){
+		deepEqual(
+			expected[i],
+			conv.makeBBCode(starting_text[i])
+			//starting_text+" => "+expected
+			);
+	}
+});
