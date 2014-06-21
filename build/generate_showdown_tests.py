@@ -25,8 +25,11 @@ strictEqual(
     "%s",
     "%s"
     );
-"""%(md_text.strip().replace("\n", "\\n").replace("\"", "\\\""),
-	res_text.strip().replace("\n", "\\n").replace("\"", "\\\""),
+"""%(
+    #md_text.strip().replace("\n", "\\n").replace("\"", "\\\""),
+	md_text.replace("\\", "\\\\").replace("\n", "\\n").replace("\"", "\\\""),
+    #res_text.strip().replace("\n", "\\n").replace("\"", "\\\""),
+    res_text.replace("\\", "\\\\").replace("\n", "\\n").replace("\"", "\\\""),
 	f)
 )
         	
