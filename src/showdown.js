@@ -125,7 +125,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if(converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
 			return wholematch;
 		}
 	},
@@ -140,7 +140,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
 			return wholematch;
 		}
 	},
@@ -156,7 +156,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
 			return wholematch;
 		}
 	},
@@ -171,7 +171,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
 			return wholematch;
 		}
 	},
@@ -186,7 +186,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = escapeCharacters(wholematch, "#@*_");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
 			return wholematch;
 		}
 	}
@@ -806,7 +806,7 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	else if(! /^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/.test(url))
 		return whole_match;
 
-	url = escapeCharacters(url,"*_");
+	url = escapeCharacters(url,"*_&");
 	//orig: var result = "<a href=\"" + url + "\"";
 	//if (title != "") {
 	//	title = title.replace(/"/g,"&quot;");
@@ -836,7 +836,9 @@ var _DoAutoLinks = function(text) {
 						//original: "<a href=\"$1\">$1</a>");
 						//before unification of link generation: "[url]$1[/url]");
 						function(wholestring, url){
-							url = escapeCharacters(url, "#@"); //fix https://github.com/alfateam123/md2bbc/issues/22
+							//#, @: fix https://github.com/alfateam123/md2bbc/issues/22
+							//&   : & converted to &amp; breaks the urls
+							url = escapeCharacters(url, "#@&"); 
 							return _buildURL(url, "")
 						});
 
@@ -983,7 +985,7 @@ var writeImageTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	}
 
 	alt_text = alt_text.replace(/"/g,"&quot;");
-	url = escapeCharacters(url,"*_");
+	url = escapeCharacters(url,"*_&"); //& converted to &amp; breaks the image links
 	//orig: var result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
 
 	// attacklab: Markdown.pl adds empty title attributes to images.
