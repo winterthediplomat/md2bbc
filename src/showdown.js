@@ -951,8 +951,7 @@ var _DoImages = function(text) {
 		)
 		/g,writeImageTag);
 	*/
-	text = text.replace(/(!\[(.*?)\]\s?\([ \t]*()<?((?:ht|f)tps?:\/\/(?:\w+\.)\S+)>?[ \t]*(?:(['"])(.*?)\5[ \t]*)?\))/g,writeImageTag);
-
+	text = text.replace(/(!\[(.*?)\]\s?\([ \t]*()<?(((?:ht|f)tps?:\/\/(?:\w+\.)+|\/)\S+)>?[ \t]*((['"])(.*?)\7[ \t]*)?\))/g,writeImageTag);
 	return text;
 }
 
