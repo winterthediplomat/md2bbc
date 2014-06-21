@@ -99,6 +99,9 @@ Showdown.converter = function(converter_options) {
 // Globals:
 //
 
+//giving a default for converter_options
+converter_options = converter_options || {};
+
 // Global hashes, used by various utility routines
 var g_urls;
 var g_titles;
@@ -119,9 +122,11 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
 			if (converter_options.recognize_bbcode)
-				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if(converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	},
 	//[math]
@@ -131,10 +136,12 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		replace: function(wholematch, opentag, content, closetag){
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
-			if(converter_options.recognize_bbcode)
-				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+			if (converter_options.recognize_bbcode)
+				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	},
 	//[code]
@@ -144,10 +151,12 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		replace: function(wholematch, content){
 			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
 			//console.log("[lang_extension::noshitsherlock] content", content);
-			if(converter_options.recognize_bbcode)
-				return wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+			if (converter_options.recognize_bbcode)
+				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
 	},
 	//[url]
@@ -155,14 +164,16 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: /\[url(\=(.*))?\](.*)\[\/url\]/g,
 		replace: function(wholematch, goturl, url, content){
-			console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			console.log("[lang_extension::noshitsherlock] content", content);
+			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
+			//console.log("[lang_extension::noshitsherlock] content", content);
 			if (converter_options.recognize_bbcode)
-				return wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			else
-				return wholematch;
+				wholematch = wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
 		}
-	},
+	}
 ];
 
 var g_output_modifiers = [
@@ -212,6 +223,14 @@ var g_output_modifiers = [
 			return "_";
 		}
 	},
+	//this are set only when enable_autolinking is set to true
+	{
+		type: "lang",
+		regex: /^(https?|ftpe?s?):\\\\(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+		replace: function(match){
+			return match.replace(/\\\\/, "//");
+		}
+	}
 ];
 
 
@@ -290,6 +309,7 @@ this.makeBBCode = function(text) {
 	// Handle github codeblocks prior to running HashHTML so that
 	// HTML contained within the codeblock gets escaped propertly
 	text = _DoGithubCodeBlocks(text);
+
 
 	// Turn block-level HTML blocks into hash entries
 	text = _HashHTMLBlocks(text);
@@ -606,6 +626,7 @@ var _RunSpanGamut = function(text) {
 	text = _DoImages(text);
 	text = _DoAnchors(text);
 
+
 	// Make links out of things like `<http://example.com/>`
 	// Must come after _DoAnchors(), because you can use < and >
 	// delimiters in inline links like [this](<url>).
@@ -613,6 +634,7 @@ var _RunSpanGamut = function(text) {
 	text = _EncodeAmpsAndAngles(text);
 	text = _DoItalicsAndBold(text);
 	// Custom handlers
+	text = _DoUrlRecognition(text);
 	text = _DoStrikes(text);
 	text = _DoUsers(text);
 	text = _DoProjects(text);
@@ -774,6 +796,18 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 }
 
 
+var _DoUrlRecognition = function(text){
+	if(converter_options && converter_options.enable_autolinking)
+		return text.replace(/(^|\s)((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)(\s|$)/gi,
+			function(wholestring, start_, url, args){
+				console.log("[_DoUrlRecognition]", wholestring, start_, url, args);
+				return start_+"[url]"+url+"[/url]"+(wholestring.match(" $")?" ":"");
+			}
+		);
+	else
+		return text;
+}
+
 var _DoAutoLinks = function(text) {
 
 	text = text.replace(/<((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)>/gi, //old regexp: /<((https?|ftp|dict):[^'">\s]+)>/gi
@@ -806,63 +840,34 @@ var _DoAutoLinks = function(text) {
 
 var _buildURL = function(url, text){
 	console.log("[_buildURL] url: "+url+" text: "+text);
-
+	var match;
 	// Gist
-	if (url.indexOf("gist.github.com") !== -1) {
-		[wholeMatch, gistId] = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/) || [];
-		if (gistId) return "[gist]" + gistId + "[/gist]";
-	}
+	if (match = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/))
+		return "[gist]" + match[1] + "[/gist]";
 	// Wikipedia article
-	if (url.indexOf(".wikipedia.org/wiki/") !== -1) {
-		[wholeMatch, lang, argument] = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/) || [];
-		if (lang && argument) return "[wiki=" + lang + "]" + argument.replace(/~E95E/g," ") + "[/wiki]";
-	}
+	else if (match = url.match(/https?:\/\/(\w\w)\.wikipedia.org\/wiki\/(.+)/))
+		return "[wiki=" + match[1] + "]" + match[2].replace (/~E95E/g," ") + "[/wiki]";
 	// Twitter
-	if (url.indexOf("twitter.com") !== -1) {
-		[wholeMatch, tweetID] = url.match(/https?:\/\/twitter\.com\/[^\/]+\/status\/([0-9]+)/) || [];
-		if (tweetID) return "[twitter]" + tweetID + "[/twitter]";
-	}
-	// YouTube
-	if (url.indexOf("youtube.com/watch?") !== -1 || url.indexOf("youtu.be/") !== -1) {
-		if (/^(https?:\/\/)?(www\.)?((youtube\.com\/watch\?(.+&)?v=)|(youtu\.be\/))[\w_-~]+(&.+)?$/.test(url))
-			return "[video]" + url + "[/video]";
-	}
-	// Facebook
-	if (url.indexOf("facebook.com/photo.php?v=") !== -1) {
-		if (/^https?:\/\/www\.facebook\.com\/photo\.php\?v=(\d+)$/.test(url))
-			return "[video]" + url + "[/video]";
-	}
-	// Dailymotion
-	if (url.indexOf("dailymotion.com/video/") !== -1 || url.indexOf("dai.ly/") !== -1) {
-		if (/^https?:\/\/(www\.dailymotion\.com\/video)|(dai\.ly)\/\w+$/.test(url))
-			return "[video]" + url + "[/video]";
-	}
-	// Vimeo
-	if (url.indexOf("vimeo.com") !== -1) {
-		if (/^https?:\/\/vimeo\.com\/\d+$/.test(url))
-			return "[video]" + url + "[/video]";
-	}
+	else if (match = url.match(/https?:\/\/twitter\.com\/[^\/]+\/status\/([0-9]+)/))
+		return "[twitter]" + match[1] + "[/twitter]";
+	// YouTube, Facebook, Dailymotion, Vimeo
+	else if (match = (url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch(?:\?v=|\?.+?&v=)|youtu\.be\/)[a-zA-Z0-9_-~]+/) ||
+					  url.match(/https?:\/\/(?:www\.)?facebook\.com\/photo\.php(?:\?v=|\?.+?&v=)\d+/) ||
+					  url.match(/https?:\/\/(?:www\.)?(?:dai\.ly\/|dailymotion\.com\/(?:.+?video=|(?:video|hub)\/))[a-z0-9]+/) ||
+					  url.match(/https?:\/\/(?:www\.)?vimeo\.com.+?\d+/)))
+		return "[video]" + match[0] + "[/video]";
 	// Spotify
-	if (url.indexOf("spotify.com") !== -1) {
-		[wholeMatch, spotifyID] = url.match(/^https?:\/\/(?:play|open)\.spotify\.com\/track\/(\w+)$/) || [];
-		if (spotifyID) return "[music]spotify:track:" + spotifyID + "[/music]";
-	}
-	// Soundcloud
-	if (url.indexOf("soundcloud.com")  !== -1) {
-		if (/^https?:\/\/soundcloud\.com\/[\w-]+\/[\w-]+$/.test(url))
-			return "[music]" + url + "[/music]";
-	}
-	// Deezer
-	if (url.indexOf("deezer.com")  !== -1) {
-		if (/^https?:\/\/(www\.)?deezer\.com\/(album|track|playlist)\/\d+$/.test(url))
-			return "[music]" + url + "[/music]";
-	}
-
+	else if (match = url.match(/^https?:\/\/(?:open|play)\.spotify\.com\/track\/([\w\d]+)$/))
+		return "[music]spotify:track:" + match[1] + "[/music]";
+	// Soundcloud, Deezer
+	else if (match = (url.match (/https?:\/\/soundcloud\.com\/\S+\/\S+/) ||
+					  url.match (/https?:\/\/(?:www\.)?deezer\.com\/(track|album|playlist)\/(\d+)/)))
+		return "[music]" + match[0] + "[/music]";
 	// Url without text (no hyperlinked text)
-	if (text == "")
+	else if (text == "")
 		return "[url]" + url + "[/url]";
-
-	return "[url=" + url + "]" + text + "[/url]";
+	else
+		return "[url=" + url + "]" + text + "[/url]";
 }
 
 var _DoImages = function(text) {
@@ -1747,34 +1752,4 @@ if (typeof define === 'function' && define.amd) {
 	define('showdown', function() {
 		return Showdown;
 	});
-}
-
-
-//
-// Showdown usage:
-//
-
-conv_opts = {multiline_quoting: false, check_quotes_into_lists: false, recognize_bbcode: false};
-
-var togglemultiline = function(){
-	conv_opts.multiline_quoting = !conv_opts.multiline_quoting;
-	console.log("(un)checked, now ", conv_opts);
-}
-
-var togglequotesintolists = function(){
-	conv_opts.check_quotes_into_lists = !conv_opts.check_quotes_into_lists;
-	console.log("(un)checked, now ", conv_opts);
-}
-
-
-var togglebbcode = function(){
-	conv_opts.recognize_bbcode = !conv_opts.recognize_bbcode;
-	console.log("(un)checked, now ", conv_opts);
-}
-
-var shitconvert=function(){
-	console.log("converting with options: ", conv_opts);
-	var converter = new Showdown.converter(conv_opts);
-	document.getElementById("bb").value=converter.makeBBCode(document.getElementById('md').value);
-	return true;
 }

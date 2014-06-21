@@ -1,11 +1,7 @@
-md2bbc
-======
-aka: Charlotte can't decide between BBCode and Markdown
+md2bbc Reference
+================
 
-### What is that document? ###
-
-This is the user documentation of md2bbc, the Charlotte-approved library.
-md2bbc converts Markdown into BBCode text.
+This is the reference of the md2bbc library.
 
 ### How can I use this library? ###
 
@@ -19,7 +15,7 @@ var bbcode = converter.makeBBCode(text); //converting your text
 alert(bbcode);
 ```
 
-Just be sure to include the library in a `<script>` tag.
+read the @[Tutorial](docs/tutorial.md) to read more about the usage of md2bbc.
 
 ### Converter Options ###
 
@@ -46,7 +42,3 @@ I suggest to set it to true.
 * `enable_autolinking`
 If set to true, bare links will be automatically turned into urls.
 If you write something like `muh http://google.com`, you'll get `muh [url]http://google.com[/url]`, without inserting the angle brackets. They're still recognized (and recommended).
-
-### Charlotte, what are you doing? You're too kawaii for that! ###
-
-We can assure that Charlotte is best girl, and she's 2cute4u too.

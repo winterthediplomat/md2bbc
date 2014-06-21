@@ -1,6 +1,5 @@
-loadTests({
-	description: "urls - non-http urls are not recognized",
-	starting_text: [
+test("urls - non-http urls are not recognized",function(){
+	var starting_text= [
 					"lol]()",
 					"[test](asdf)",
 					"[](http://nwa)",
@@ -10,7 +9,7 @@ loadTests({
 					"(lol)",
 					"[launch this game!](steam://this.game/)"
 					],
-	expected: [
+	expected= [
 				"lol]()",
 				"[test](asdf)",
 				"[](http://nwa)",
@@ -19,6 +18,13 @@ loadTests({
 				"[asdada]asdadsad",
 				"(lol)",
 				"[launch this game!](steam://this.game/)"
-				],
-	options: null
+				];
+	var conv = new Showdown.converter();
+	for(var i = 0; i<starting_text.length; i++){
+		deepEqual(
+			expected[i],
+			conv.makeBBCode(starting_text[i])
+			//starting_text+" => "+expected
+			);
+	}
 });
