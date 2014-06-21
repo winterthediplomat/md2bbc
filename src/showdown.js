@@ -119,13 +119,13 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: "\\\[m\\\](.+)\\\[\/m\\\]",
 		replace: function(wholematch, opentag, content, closetag){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
+			console.log("[lang_extension::m] wholematch", wholematch);
+			console.log("[lang_extension::m] content", content);
 			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if(converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	},
@@ -134,13 +134,13 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: "\\\[math\\\](.+)\\\[\/math\\\]",
 		replace: function(wholematch, opentag, content, closetag){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
+			console.log("[lang_extension::math] wholematch", wholematch);
+			console.log("[lang_extension::math] content", content);
 			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	},
@@ -149,13 +149,14 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: "\\\[code=.+\\\](.+)\\\[\/code\\\]",
 		replace: function(wholematch, content){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
+			console.log("[lang_extension::code] wholematch", wholematch);
+			console.log("[lang_extension::code] content", content);
+			console.log("[lang_extension::code] converter_options", converter_options);
 			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	},
@@ -164,13 +165,28 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 		type:'lang',
 		regex: /\[url(\=(.*))?\](.*)\[\/url\]/g,
 		replace: function(wholematch, goturl, url, content){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
+			console.log("[lang_extension::url] wholematch", wholematch);
+			console.log("[lang_extension::url] content", content);
 			if (converter_options.recognize_bbcode)
 				wholematch = wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
+			return wholematch;
+		}
+	},
+	//[img] (fixes https://github.com/alfateam123/md2bbc/issues/20#issuecomment-46658318)
+	{
+		type:'lang',
+		regex: /\[img](.*)\[\/img\]/g,
+		replace: function(wholematch, goturl, url, content){
+			console.log("[lang_extension::url] wholematch", wholematch);
+			console.log("[lang_extension::url] content", content);
+			if (converter_options.recognize_bbcode)
+				wholematch = escapeCharacters(wholematch, "#@*_");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	}
@@ -756,6 +772,11 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	var link_id     = m3.toLowerCase();
 	var url         = m4;
 	var title       = m6;
+	
+	//fix issue https://github.com/alfateam123/md2bbc/issues/22
+	// "# into md urls breaks it all"
+	link_text = escapeCharacters(link_text, "#@");
+	console.log("[writeAnchorTag] link_text", link_text);
 
 	if (url == "") {
 		if (link_id == "") {
@@ -779,12 +800,13 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 			}
 		}
 	}
+
 	//fix a weird bug: (.*)[/code] -> [url=.*]/code[/url]
 	//if the url is not a real url, we don't have to enclose it into tags
 	else if(! /^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/.test(url))
 		return whole_match;
 
-	url = escapeCharacters(url,"*_");
+	url = escapeCharacters(url,"*_&");
 	//orig: var result = "<a href=\"" + url + "\"";
 	//if (title != "") {
 	//	title = title.replace(/"/g,"&quot;");
@@ -801,7 +823,8 @@ var _DoUrlRecognition = function(text){
 		return text.replace(/(^|\s)((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)(\s|$)/gi,
 			function(wholestring, start_, url, args){
 				console.log("[_DoUrlRecognition]", wholestring, start_, url, args);
-				return start_+"[url]"+url+"[/url]"+(wholestring.match(" $")?" ":"");
+				//the conversion from & to &amp; breaks the urls
+				return start_+"[url]"+url.replace(/&amp;/g, "&")+"[/url]"+(wholestring.match(" $")?" ":"");
 			}
 		);
 	else
@@ -813,7 +836,12 @@ var _DoAutoLinks = function(text) {
 	text = text.replace(/<((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)>/gi, //old regexp: /<((https?|ftp|dict):[^'">\s]+)>/gi
 						//original: "<a href=\"$1\">$1</a>");
 						//before unification of link generation: "[url]$1[/url]");
-						function(wholestring, url){ return _buildURL(url, "")});
+						function(wholestring, url){
+							//#, @: fix https://github.com/alfateam123/md2bbc/issues/22
+							//&   : & converted to &amp; breaks the urls
+							url = escapeCharacters(url, "#@&"); 
+							return _buildURL(url, "")
+						});
 
 	// Email addresses: <address@domain.foo>
 
@@ -935,6 +963,8 @@ var writeImageTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	var url         = m4;
 	var title       = m6;
 
+	console.log("[writeImageTag]", whole_match, alt_text, link_id, url, title);
+
 	if (!title) title = "";
 
 	if (url == "") {
@@ -956,7 +986,7 @@ var writeImageTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	}
 
 	alt_text = alt_text.replace(/"/g,"&quot;");
-	url = escapeCharacters(url,"*_");
+	url = escapeCharacters(url,"*_&"); //& converted to &amp; breaks the image links
 	//orig: var result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
 
 	// attacklab: Markdown.pl adds empty title attributes to images.
@@ -1220,7 +1250,8 @@ var _DoCodeBlocks = function(text) {
 			codeblock = codeblock.replace(/\n+$/g,""); // trim trailing whitespace
 
 			//original: codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
-			codeblock = "[code]"+codeblock+"[/code]";
+			//assuming "code" as a generic language
+			codeblock = "[code=code]"+codeblock+"[/code]";
 			return hashBlock(codeblock) + nextChar;
 		}
 	);
@@ -1263,7 +1294,8 @@ var _DoGithubCodeBlocks = function(text) {
 
 			//codeblock = "<pre><code" + (language ? " class=\"" + language + '"' : "") + ">" + codeblock + "\n</code></pre>";
 			//codeblock = hashBlock(codeblock);
-			codeblock = "[code"+(language? "="+language : "")+"]\n"+codeblock+"\n[/code]";
+			//giving a "generic language" to code blocks
+			codeblock = "[code"+(language? "="+language : "=code")+"]\n"+codeblock+"\n[/code]";
 
 			return codeblock; //hashBlock(codeblock);
 		}

@@ -7,9 +7,9 @@ aka: Charlotte can't decide between BBCode and Markdown
 This is md2bbc, the Charlotte-approved library.
 
 Ok, enough fagging: md2bbc converts Markdown into BBCode text.  
-It's based on (coreyti/showdown)[https://github.com/coreyti/showdown/], a javascript port of the original Markdown.pl from John Gruber (although there are [some known differences](
+It's based on [coreyti/showdown](https://github.com/coreyti/showdown/), a javascript port of the original Markdown.pl from John Gruber (although there are [some known differences](
 https://github.com/coreyti/showdown/#known-differences-in-output))
-We (mainly @alfateam123 and @cenci0) adapted it to generate BBCode instead of HTML code.
+We (mainly [@alfateam123](http://github.com/alfateam123) and [@cenci0]([http://github.com/cenci0) ) adapted it to generate BBCode instead of HTML code.
 
 ### Example pls ###
 
@@ -23,8 +23,8 @@ var bbcode = converter.makeBBCode(text); //converting your text
 alert(bbcode);
 ```
 
-don't forget to include @[src/showdown.js](src/showdown.js). We provide a minified version too.
+don't forget to include src/showdown.js. We provide a minified version too.
 
 What are these *converter_options*?  
 They're flags that you can use to enable some (sane) non-standard behaviours.  
-If you want to know more, you can read @[the md2bbc reference](docs/reference.md).
+If you want to know more, you can read the md2bbc reference.
