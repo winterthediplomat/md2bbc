@@ -1,3 +1,5 @@
+/* BBCode enabled by default at the moment
+
 test("bbcode handling - normal behaviour", function(){
 	//bbcode must not be modified.
 	var starting_text= [
@@ -24,7 +26,7 @@ test("bbcode handling - normal behaviour", function(){
 			//starting_text+" => "+expected
 			);
 	}
-});
+});*/
 test("bbcode handling - recognize_bbcode=true", function(){
 	/*
 	Markdown mixed with BBCode is ok, but!
@@ -56,7 +58,7 @@ test("bbcode handling - recognize_bbcode=true", function(){
 				"[url][b]muh text![/b][/url]",
 				"[m]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/m]",
 				"[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/math]",
-				"saafa [cur]asdasd[/cur]\n[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_ad[/math]_\n[cur][b]asd[/b][/cur]\n[url=http://google.com]<http://alfateam123.niggazwithattitu.de>[/url]"
+				"saafa [cur]asdasd[/cur]\n[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_ad[/math]\n_\n[cur][b]asd[/b][/cur]\n[url=http://google.com]<http://alfateam123.niggazwithattitu.de>[/url]"
  			  ];
 	var conv = new Showdown.converter({recognize_bbcode: true});
 	for(var i = 0; i<starting_text.length; i++){

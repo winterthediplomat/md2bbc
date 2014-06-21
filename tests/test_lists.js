@@ -37,7 +37,7 @@ test("lists - quotes into lists - normal behaviour", function(){
 				</ul></p>
 				</blockquote>
 	            */
-				"[list]\n[*] Asagi\n[*] Charlotte \n[*] >Tsurugi\n\n[quote]\nnot goddess\n[/list]\n[/quote]",
+				"[list]\n[*] Asagi\n[*] Charlotte \n[*] >Tsurugi\n[quote]\nnot goddess\n[/list]\n[/quote]",
 			  ];
 	var conv = new Showdown.converter();
 	for(var i = 0; i<starting_text.length; i++){
@@ -54,7 +54,7 @@ test("lists - quotes into lists - using check_quotes_into_lists", function(){
 					],
 	expected = [
 				//_formParagraphs joins with \n\n. if using only one \n, several tests result as FAIL.
-				"[list]\n[*] Asagi\n[*] Charlotte \n[*] [quote]\n\nTsurugi\nnot goddess\n\n[/quote]\n[/list]",
+				"[list]\n[*] Asagi\n[*] Charlotte \n[*] [quote]\nTsurugi\nnot goddess\n[/quote]\n[/list]",
 			  ];
 	var conv = new Showdown.converter({check_quotes_into_lists: true});
 	for(var i = 0; i<starting_text.length; i++){

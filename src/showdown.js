@@ -106,6 +106,7 @@ converter_options = converter_options || {};
 var g_urls;
 var g_titles;
 var g_html_blocks;
+var g_html_spans;
 
 
 // Used to track when we're inside an ordered or unordered list
@@ -114,53 +115,8 @@ var g_list_level = 0;
 
 // Global extensions
 var g_lang_extensions = [ // extensions are bad for your health , don't use them
-	//[m]
-	{
-		type:'lang',
-		regex: "\\\[m\\\](.+)\\\[\/m\\\]",
-		replace: function(wholematch, opentag, content, closetag){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
-			if (converter_options.recognize_bbcode)
-				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			if(converter_options.enable_autolinking)
-				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
-			return wholematch;
-		}
-	},
-	//[math]
-	{
-		type:'lang',
-		regex: "\\\[math\\\](.+)\\\[\/math\\\]",
-		replace: function(wholematch, opentag, content, closetag){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
-			if (converter_options.recognize_bbcode)
-				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			if (converter_options.enable_autolinking)
-				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
-			return wholematch;
-		}
-	},
-	//[code]
-	{
-		type:'lang',
-		regex: "\\\[code=.+\\\](.+)\\\[\/code\\\]",
-		replace: function(wholematch, content){
-			//console.log("[lang_extension::noshitsherlock] wholematch", wholematch);
-			//console.log("[lang_extension::noshitsherlock] content", content);
-			if (converter_options.recognize_bbcode)
-				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
-			if (converter_options.enable_autolinking)
-				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return url.replace(/\/\//, "\\\\")});
-			return wholematch;
-		}
-	},
 	//[url]
-	{
+	/*{
 		type:'lang',
 		regex: /\[url(\=(.*))?\](.*)\[\/url\]/g,
 		replace: function(wholematch, goturl, url, content){
@@ -173,26 +129,10 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 						function(url){return url.replace(/\/\//, "\\\\")});
 			return wholematch;
 		}
-	}
+	}*/
 ];
 
 var g_output_modifiers = [
-	//<hr> -> [hr]
-	{   
-		type: 'lang',
-		regex: "\<hr \/\>",
-		replace: function(match) {
-			return "[hr]";
-		}
-	},
-	//removing <p> and </p>
-	{   
-		type: 'lang',
-		regex: "\<\/?p\>",
-		replace: function(match) {
-			return "";
-		}
-	},
 	//setting &gt; and &lt; as > and <
 	{
 		type: "lang",
@@ -209,7 +149,7 @@ var g_output_modifiers = [
 		}
 	},
 	//these are added only when recognize_bbcode is set to true.
-	{
+	/*{
 		type: "lang",
 		regex: "~S",
 		replace: function(match){
@@ -222,7 +162,7 @@ var g_output_modifiers = [
 		replace: function(match){
 			return "_";
 		}
-	},
+	},*/
 	//this are set only when enable_autolinking is set to true
 	{
 		type: "lang",
@@ -272,6 +212,7 @@ this.makeBBCode = function(text) {
 	g_urls = {};
 	g_titles = {};
 	g_html_blocks = [];
+	g_html_spans = [];
 
 	// attacklab: Replace ~ with ~T
 	// This lets us use tilde as an escape char to avoid md5 hashes
@@ -311,8 +252,10 @@ this.makeBBCode = function(text) {
 	text = _DoGithubCodeBlocks(text);
 
 
-	// Turn block-level HTML blocks into hash entries
-	text = _HashHTMLBlocks(text);
+	// Turn inline BBCode elements into hash entries
+	text = _HashBBCodeSpans(text);
+	// Turn block-level BBCode blocks into hash entries
+	text = _HashBBCodeBlocks(text);
 	// Strip link definitions, store in hashes.
 	text = _StripLinkDefinitions(text);
 
@@ -443,124 +386,31 @@ var _StripLinkDefinitions = function(text) {
 }
 
 
-var _HashHTMLBlocks = function(text) {
+var _HashBBCodeBlocks = function(text) {
 	// attacklab: Double up blank lines to reduce lookaround
 	text = text.replace(/\n/g,"\n\n");
 
-	// Hashify HTML blocks:
-	// We only want to do this for block-level HTML tags, such as headers,
-	// lists, and tables. That's because we still want to wrap <p>s around
-	// "paragraphs" that are wrapped in non-block-level tags, such as anchors,
-	// phrase emphasis, and spans. The list of tags we're looking for is
-	// hard-coded:
-	var block_tags_a = "p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del|style|section|header|footer|nav|article|aside";
-	var block_tags_b = "p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|style|section|header|footer|nav|article|aside";
-
-	// First, look for nested blocks, e.g.:
-	//   <div>
-	//     <div>
-	//     tags for inner block must be indented.
-	//     </div>
-	//   </div>
-	//
-	// The outermost tags must start at the left margin for this to match, and
-	// the inner nested divs must be indented.
-	// We need to do this before the next, more liberal match, because the next
-	// match will start at the first `<div>` and stop at the first `</div>`.
+	// Hashify some BBCode block tags:
+	// Some BBCode tags, like [math]/[m], may contain characters like aterisks
+	// and underscores that are going to cause conflicts and problems.
+	// eg:
+	//     [math]\sqrt-1 * \frac{5}{b*2*3}-q_a_d[/math]
+	// is usually converted into:
+	//     [math]\sqrt-1 * \frac{5}{b[cur]2[/cur]3}-q[cur]a[/cur]d[/math]
+	// which is wrong.
 
 	// attacklab: This regex can be expensive when it fails.
 	/*
 		var text = text.replace(/
 		(						// save in $1
-			^					// start of line  (with /m)
-			<($block_tags_a)	// start tag = $2
+			\[($block_tags_a)	// start tag = $2
 			\b					// word break
-								// attacklab: hack around khtml/pcre bug...
-			[^\r]*?\n			// any number of lines, minimally matching
-			</\2>				// the matching end tag
-			[ \t]*				// trailing spaces/tabs
-			(?=\n+)				// followed by a newline
-		)						// attacklab: there are sentinel newlines at end of document
-		/gm,function(){...}};
-	*/
-	text = text.replace(/^(<(p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del)\b[^\r]*?\n<\/\2>[ \t]*(?=\n+))/gm,hashElement);
-
-	//
-	// Now match more liberally, simply from `\n<tag>` to `</tag>\n`
-	//
-
-	/*
-		var text = text.replace(/
-		(						// save in $1
-			^					// start of line  (with /m)
-			<($block_tags_b)	// start tag = $2
-			\b					// word break
-								// attacklab: hack around khtml/pcre bug...
-			[^\r]*?				// any number of lines, minimally matching
-			</\2>				// the matching end tag
-			[ \t]*				// trailing spaces/tabs
-			(?=\n+)				// followed by a newline
-		)						// attacklab: there are sentinel newlines at end of document
-		/gm,function(){...}};
-	*/
-	text = text.replace(/^(<(p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|style|section|header|footer|nav|article|aside)\b[^\r]*?<\/\2>[ \t]*(?=\n+)\n)/gm,hashElement);
-
-	// Special case just for <hr />. It was easier to make a special case than
-	// to make the other regex more complicated.
-
-	/*
-		text = text.replace(/
-		(						// save in $1
-			\n\n				// Starting after a blank line
-			[ ]{0,3}
-			(<(hr)				// start tag = $2
-			\b					// word break
-			([^<>])*?			//
-			\/?>)				// the matching end tag
-			[ \t]*
-			(?=\n{2,})			// followed by a blank line
+			[^\r]*?\n			// any number of lines, lazy matching
+			\[/\2\]				// the matching end tag
 		)
-		/g,hashElement);
+		/g,hashElement;
 	*/
-	text = text.replace(/(\n[ ]{0,3}(<(hr)\b([^<>])*?\/?>)[ \t]*(?=\n{2,}))/g,hashElement);
-
-	// Special case for standalone HTML comments:
-
-	/*
-		text = text.replace(/
-		(						// save in $1
-			\n\n				// Starting after a blank line
-			[ ]{0,3}			// attacklab: g_tab_width - 1
-			<!
-			(--[^\r]*?--\s*)+
-			>
-			[ \t]*
-			(?=\n{2,})			// followed by a blank line
-		)
-		/g,hashElement);
-	*/
-	text = text.replace(/(\n\n[ ]{0,3}<!(--[^\r]*?--\s*)+>[ \t]*(?=\n{2,}))/g,hashElement);
-
-	// PHP and ASP-style processor instructions (<?...?> and <%...%>)
-
-	/*
-		text = text.replace(/
-		(?:
-			\n\n				// Starting after a blank line
-		)
-		(						// save in $1
-			[ ]{0,3}			// attacklab: g_tab_width - 1
-			(?:
-				<([?%])			// $2
-				[^\r]*?
-				\2>
-			)
-			[ \t]*
-			(?=\n{2,})			// followed by a blank line
-		)
-		/g,hashElement);
-	*/
-	text = text.replace(/(?:\n\n)([ ]{0,3}(?:<([?%])[^\r]*?\2>)[ \t]*(?=\n{2,}))/g,hashElement);
+	text = text.replace(/(\[(math|code)\b[^\r]*?\[\/\2\])/g,hashElement);
 
 	// attacklab: Undo double lines (see comment at top of this function)
 	text = text.replace(/\n\n/g,"\n");
@@ -583,6 +433,25 @@ var hashElement = function(wholeMatch,m1) {
 	return blockText;
 };
 
+var _HashBBCodeSpans = function(text) {
+	// Hashify some BBCode inline tags
+	text = text.replace(/(\[(m|img)\b[^\r]*?\[\/\2\])/g,hashSpanElement);
+
+	return text;
+}
+
+var hashSpanElement = function(wholeMatch,m1) {
+	var blockText = m1;
+
+	// trim leadin/trailing blank lines
+	blockText = blockText.replace(/^\n+|\n+$/g,"");
+
+	// Replace the element text with a marker ("~SxS" where x is its key)
+	blockText = "~S" + (g_html_spans.push(blockText)-1) + "S";
+
+	return blockText;
+};
+
 var _RunBlockGamut = function(text) {
 //
 // These are all the transformations that form block-level
@@ -591,7 +460,7 @@ var _RunBlockGamut = function(text) {
 	text = _DoHeaders(text);
 
 	// Do Horizontal Rules:
-	var key = hashBlock("<hr />");
+	var key = hashBlock("[hr /]");
 	text = text.replace(/^[ ]{0,2}([ ]?\*[ ]?){3,}[ \t]*$/gm,key);
 	text = text.replace(/^[ ]{0,2}([ ]?\-[ ]?){3,}[ \t]*$/gm,key);
 	text = text.replace(/^[ ]{0,2}([ ]?\_[ ]?){3,}[ \t]*$/gm,key);
@@ -600,11 +469,11 @@ var _RunBlockGamut = function(text) {
 	text = _DoCodeBlocks(text);
 	text = _DoBlockQuotes(text);
 
-	// We already ran _HashHTMLBlocks() before, in Markdown(), but that
+	// We already ran _HashBBCodeBlocks() before, in Markdown(), but that
 	// was to escape raw HTML in the original Markdown source. This time,
 	// we're escaping the markup we've just created, so that we don't wrap
 	// <p> tags around block-level tags.
-	text = _HashHTMLBlocks(text);
+	text = _HashBBCodeBlocks(text);
 	text = _FormParagraphs(text);
 
 	return text;
@@ -619,6 +488,7 @@ var _RunSpanGamut = function(text) {
 
 	text = _DoCodeSpans(text);
 	text = _EscapeSpecialCharsWithinTagAttributes(text);
+	text = _EscapeSpecialTagsContent(text);
 	text = _EncodeBackslashEscapes(text);
 
 	// Process anchor and image tags. Images must come first,
@@ -659,6 +529,20 @@ var _EscapeSpecialCharsWithinTagAttributes = function(text) {
 		var tag = wholeMatch.replace(/(.)<\/?code>(?=.)/g,"$1`");
 		tag = escapeCharacters(tag,"\\`*_");
 		return tag;
+	});
+
+	return text;
+}
+
+var _EscapeSpecialTagsContent = function(text) {
+//
+// Escape some characters within specified tags in order to prevent
+// unwanted results from happening.
+//
+
+	// Escape '<' within urls text value to avoid urls within urls
+	text = text.replace(/\[url(="?[^"]+?"?)\](.+?)\[\/url\]/, function(wholeMatch) {
+		return escapeCharacters(wholeMatch,"<");
 	});
 
 	return text;
@@ -792,7 +676,7 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	//	result +=  " title=\"" + title + "\"";
 	//}
 
-	return _buildURL(url, link_text);
+	return _BuildURL(url, link_text);
 }
 
 
@@ -810,10 +694,10 @@ var _DoUrlRecognition = function(text){
 
 var _DoAutoLinks = function(text) {
 
-	text = text.replace(/<((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)>/gi, //old regexp: /<((https?|ftp|dict):[^'">\s]+)>/gi
-						//original: "<a href=\"$1\">$1</a>");
-						//before unification of link generation: "[url]$1[/url]");
-						function(wholestring, url){ return _buildURL(url, "")});
+	text = text.replace(/<((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)>/gi, // old: /<((https?|ftp|dict):[^'">\s]+)>/gi
+		function(wholeMatch, url) {
+			return _BuildURL(url, "");
+		});
 
 	// Email addresses: <address@domain.foo>
 
@@ -838,8 +722,8 @@ var _DoAutoLinks = function(text) {
 	return text;
 }
 
-var _buildURL = function(url, text){
-	console.log("[_buildURL] url: "+url+" text: "+text);
+var _BuildURL = function(url, text){
+	console.log("[_BuildURL] url: "+url+" text: "+text);
 	var match;
 	// Gist
 	if (match = url.match(/https?\:\/\/gist\.github\.com\/\w+\/(\w+)/))
@@ -1064,12 +948,28 @@ var _DoLists = function(text) {
 			)
 		)/g
 	*/
-	var whole_list = /^(([ ]{0,3}([*+-]|\d+[.])[ \t]+)[^\r]+?(~0|\n{2,}(?=\S)(?![ \t]*(?:[*+-]|\d+[.])[ \t]+)))/gm;
+	var whole_list = /^(([ ]{0,3}([*+-]|[a-zA-Z\d]+[.])[ \t]+)[^\r]+?(~0|\n{2,}(?=\S)(?![ \t]*(?:[*+-]|[a-zA-Z\d]+[.])[ \t]+)))/gm;
 
 	if (g_list_level) {
-		text = text.replace(whole_list,function(wholeMatch,m1,m2) {
+		text = text.replace(whole_list,function(wholeMatch,m1,m2,m3) {
 			var list = m1;
-			var list_type = (m2.search(/[*+-]/g)>-1) ? "ul" : "ol";
+			var ordered_list = (/[*+-]/g.test(m2) ? 0 : 1); // 0 > unordered list; 1 > ordered list
+
+			var list_type,
+			    list_start;
+
+			if (/\d+/.test(m3)) {
+				list_type = "1";
+				list_start = /\d+/.exec(m3);
+			}
+			else if (/[iI]+/.test(m3)) {
+				list_type = /[iI]/.exec(m3);
+				list_start = m3.match(/[iI]/g).length;
+			}
+			else if (/[a-zA-Z]/.test(m3)) {
+				list_type = (m3 === m3.toLowerCase()) ? "a" : "A";
+				list_start = m3.toLowerCase().charCodeAt(0) - 96;
+			}
 
 			// Turn double returns into triple returns, so that we can make a
 			// paragraph for the last item in a list, if necessary:
@@ -1081,27 +981,44 @@ var _DoLists = function(text) {
 			// HTML block parser. This is a hack to work around the terrible
 			// hack that is the HTML block parser.
 			result = result.replace(/\s+$/,"");
-			//result = "<"+list_type+">" + result + "</"+list_type+">\n";
-			console.log("[_DoLists]g_list_level, result:", result);
-			result = "[list]"+result+"[/list]\n";
+			console.log("[_DoLists]g_list_level, result: ", result);
+			result = "[list" + (ordered_list ? " type=\"" + list_type + "\" start=\"" + list_start + "\"" : "") + "]\n" + result + "[/list]\n";
+
 			return result;
 		});
 	} else {
-		whole_list = /(\n\n|^\n?)(([ ]{0,3}([*+-]|\d+[.])[ \t]+)[^\r]+?(~0|\n{2,}(?=\S)(?![ \t]*(?:[*+-]|\d+[.])[ \t]+)))/g;
-		text = text.replace(whole_list,function(wholeMatch,m1,m2,m3) {
+		whole_list = /(\n\n|^\n?)(([ ]{0,3}([*+-]|[a-zA-Z\d]+[.])[ \t]+)[^\r]+?(~0|\n{2,}(?=\S)(?![ \t]*(?:[*+-]|[a-zA-Z\d]+[.])[ \t]+)))/g;
+		text = text.replace(whole_list,function(wholeMatch,m1,m2,m3,m4) {
 			var runup = m1;
 			var list = m2;
+			var ordered_list = (/[*+-]/g.test(m3) ? 0 : 1); // 0 > unordered list; 1 > ordered list
 
-			var list_type = (m3.search(/[*+-]/g)>-1) ? "ul" : "ol";
+			var list_type,
+			    list_start;
+
+			if (/\d+/.test(m4)) {
+				list_type = "1";
+				list_start = /\d+/.exec(m4);
+			}
+			else if (/[iI]+/.test(m4)) {
+				list_type = /[iI]/.exec(m4);
+				list_start = m4.match(/[iI]/g).length;
+			}
+			else if (/[a-zA-Z]/.test(m4)) {
+				list_type = (m4 === m4.toLowerCase()) ? "a" : "A";
+				list_start = m4.toLowerCase().charCodeAt(0) - 96;
+			}
+
 			// Turn double returns into triple returns, so that we can make a
 			// paragraph for the last item in a list, if necessary:
 			var list = list.replace(/\n{2,}/g,"\n\n\n");;
 			var result = _ProcessListItems(list);
 			//result = runup + "<"+list_type+">\n" + result + "</"+list_type+">\n";
-			console.log("[_DoLists]result: "+result);
+			console.log("[_DoLists]result: " + result);
 			//result = result.split("\n").map(function(item){return "[\\*] "+item+"\n";}).join("");
 			//console.log("[_DoLists]result after treatment: "+result);
-			result = runup + "[list]\n"+result+"[/list]\n";
+			result = "[list" + (ordered_list ? " type=\"" + list_type + "\" start=\"" + list_start + "\"" : "") + "]\n" + result + "[/list]\n";
+
 			return result;
 		});
 	}
@@ -1156,7 +1073,7 @@ _ProcessListItems = function(list_str) {
 			(?= \n* (~0 | \2 ([*+-]|\d+[.]) [ \t]+))
 		/gm, function(){...});
 	*/
-	list_str = list_str.replace(/(\n)?(^[ \t]*)([*+-]|\d+[.])[ \t]+([^\r]+?(\n{1,2}))(?=\n*(~0|\2([*+-]|\d+[.])[ \t]+))/gm,
+	list_str = list_str.replace(/(\n)?(^[ \t]*)([*+-]|[a-zA-Z\d]+[.])[ \t]+([^\r]+?(\n{1,2}))(?=\n*(~0|\2([*+-]|[a-zA-Z\d]+[.])[ \t]+))/gm,
 		function(wholeMatch,m1,m2,m3,m4){
 			var item = m4;
 			var leading_line = m1;
@@ -1265,7 +1182,7 @@ var _DoGithubCodeBlocks = function(text) {
 			//codeblock = hashBlock(codeblock);
 			codeblock = "[code"+(language? "="+language : "")+"]\n"+codeblock+"\n[/code]";
 
-			return codeblock; //hashBlock(codeblock);
+			return hashBlock(codeblock); //codeblock;
 		}
 	);
 
@@ -1539,15 +1456,14 @@ var _FormParagraphs = function(text) {
 		}
 		else if (str.search(/\S/) >= 0) {
 			str = _RunSpanGamut(str);
-			str = str.replace(/^([ \t]*)/g,"<p>");
-			str += "</p>"
+			str = str.replace(/^([ \t]*)/g,"");
 			grafsOut.push(str);
 		}
 
 	}
 
 	//
-	// Unhashify HTML blocks
+	// Unhashify BBCode blocks and spans
 	//
 	end = grafsOut.length;
 	for (var i=0; i<end; i++) {
@@ -1557,11 +1473,17 @@ var _FormParagraphs = function(text) {
 			blockText = blockText.replace(/\$/g,"$$$$"); // Escape any dollar signs
 			grafsOut[i] = grafsOut[i].replace(/~K\d+K/,blockText);
 		}
+
+		// if it contains hashed BBCode spans
+		while (grafsOut[i].search(/~S(\d+)S/) >= 0) {
+			var spanText = g_html_spans[RegExp.$1];
+			grafsOut[i] = grafsOut[i].replace(/~S\d+S/, spanText);
+		}
 	}
 
 	console.log("[_FormParagraphs] grafsOut:", grafsOut);
 
-	return grafsOut.join("\n\n");
+	return grafsOut.join("\n");
 }
 
 

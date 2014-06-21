@@ -60,7 +60,7 @@ test("automated linking - recognize_bbcode enabled",function(){
 				"[url][b]muh text![/b][/url]",
 				"[m]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/m]",
 				"[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_a_d[/math]",
-				"saafa [cur]asdasd[/cur]\n[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_ad[/math]_\n[cur][b]asd[/b][/cur]\n[url=http://google.com]<http://alfateam123.niggazwithattitu.de>[/url]",
+				"saafa [cur]asdasd[/cur]\n[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_ad[/math]\n_\n[cur][b]asd[/b][/cur]\n[url=http://google.com]<http://alfateam123.niggazwithattitu.de>[/url]",
 				//new tests
 				"[url]http://google.com[/url]",
 				"htt:p//google.com",
