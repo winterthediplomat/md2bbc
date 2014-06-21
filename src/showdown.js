@@ -641,6 +641,11 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	var url         = m4;
 	var title       = m6;
 
+	// fix issue https://github.com/alfateam123/md2bbc/issues/22
+	// "# into md urls breaks it all"
+	link_text = escapeCharacters(link_text, "#@");
+	console.log("[writeAnchorTag] link_text", link_text);
+
 	if (url == "") {
 		if (link_id == "") {
 			// lower-case and turn embedded newlines into spaces
@@ -663,6 +668,7 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 			}
 		}
 	}
+
 	//fix a weird bug: (.*)[/code] -> [url=.*]/code[/url]
 	//if the url is not a real url, we don't have to enclose it into tags
 	else if(! /^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/.test(url))
@@ -696,6 +702,7 @@ var _DoAutoLinks = function(text) {
 
 	text = text.replace(/<((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)>/gi, // old: /<((https?|ftp|dict):[^'">\s]+)>/gi
 		function(wholeMatch, url) {
+			url = escapeCharacters(url, "#@"); // fix https://github.com/alfateam123/md2bbc/issues/22
 			return _BuildURL(url, "");
 		});
 
