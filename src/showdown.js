@@ -174,6 +174,21 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 						function(url){return url.replace(/\/\//, "\\\\")});
 			return wholematch;
 		}
+	},
+	//[img] (fixes https://github.com/alfateam123/md2bbc/issues/20#issuecomment-46658318)
+	{
+		type:'lang',
+		regex: /\[img](.*)\[\/img\]/g,
+		replace: function(wholematch, goturl, url, content){
+			console.log("[lang_extension::url] wholematch", wholematch);
+			console.log("[lang_extension::url] content", content);
+			if (converter_options.recognize_bbcode)
+				wholematch = escapeCharacters(wholematch, "#@*_");
+			if (converter_options.enable_autolinking)
+				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
+						function(url){return url.replace(/\/\//, "\\\\")});
+			return wholematch;
+		}
 	}
 ];
 
@@ -757,6 +772,11 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 	var link_id     = m3.toLowerCase();
 	var url         = m4;
 	var title       = m6;
+	
+	//fix issue https://github.com/alfateam123/md2bbc/issues/22
+	// "# into md urls breaks it all"
+	link_text = escapeCharacters(link_text, "#@");
+	console.log("[writeAnchorTag] link_text", link_text);
 
 	if (url == "") {
 		if (link_id == "") {
@@ -780,6 +800,7 @@ var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6) {
 			}
 		}
 	}
+
 	//fix a weird bug: (.*)[/code] -> [url=.*]/code[/url]
 	//if the url is not a real url, we don't have to enclose it into tags
 	else if(! /^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/.test(url))
@@ -814,7 +835,10 @@ var _DoAutoLinks = function(text) {
 	text = text.replace(/<((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)>/gi, //old regexp: /<((https?|ftp|dict):[^'">\s]+)>/gi
 						//original: "<a href=\"$1\">$1</a>");
 						//before unification of link generation: "[url]$1[/url]");
-						function(wholestring, url){ return _buildURL(url, "")});
+						function(wholestring, url){
+							url = escapeCharacters(url, "#@"); //fix https://github.com/alfateam123/md2bbc/issues/22
+							return _buildURL(url, "")
+						});
 
 	// Email addresses: <address@domain.foo>
 
@@ -1267,7 +1291,8 @@ var _DoGithubCodeBlocks = function(text) {
 
 			//codeblock = "<pre><code" + (language ? " class=\"" + language + '"' : "") + ">" + codeblock + "\n</code></pre>";
 			//codeblock = hashBlock(codeblock);
-			codeblock = "[code"+(language? "="+language : "")+"]\n"+codeblock+"\n[/code]";
+			//giving a "generic language" to code blocks
+			codeblock = "[code"+(language? "="+language : "=code")+"]\n"+codeblock+"\n[/code]";
 
 			return codeblock; //hashBlock(codeblock);
 		}
