@@ -6,7 +6,7 @@ test("autourl - formatting", function(){
 		"<http://google.com/test?user=@user&project=#project>",
 		"<http://lol.asd>",
 		"<http://nonchosbatta.omnivium.it/#/users/Qualcuno%20lo%20far%C3%A0/timer>",
-		"<http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin>"
+		"<http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin>",
 	];
 	var expected = [
 		"[url]http://google.com[/url]",

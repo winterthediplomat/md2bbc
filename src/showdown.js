@@ -125,7 +125,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if(converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	},
@@ -140,7 +140,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	},
@@ -156,7 +156,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = wholematch.replace(/\*/g, "~S").replace(/_/g, "~U").replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	},
@@ -171,7 +171,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = wholematch.replace(/\>/g, "&gt;").replace(/\</g, "&lt;");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	},
@@ -186,7 +186,7 @@ var g_lang_extensions = [ // extensions are bad for your health , don't use them
 				wholematch = escapeCharacters(wholematch, "#@*_");
 			if (converter_options.enable_autolinking)
 				wholematch = wholematch.replace(/^(https?|ftpe?s?):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*$/g,
-						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@")});
+						function(url){return escapeCharacters(url.replace(/\/\//, "\\\\"), "#@&")});
 			return wholematch;
 		}
 	}
@@ -823,7 +823,8 @@ var _DoUrlRecognition = function(text){
 		return text.replace(/(^|\s)((https?|ftpe?s?|dict):\/\/(\w+\.)+[a-z]+\/?([^'">\s]+)*)(\s|$)/gi,
 			function(wholestring, start_, url, args){
 				console.log("[_DoUrlRecognition]", wholestring, start_, url, args);
-				return start_+"[url]"+url+"[/url]"+(wholestring.match(" $")?" ":"");
+				//the conversion from & to &amp; breaks the urls
+				return start_+"[url]"+url.replace(/&amp;/g, "&")+"[/url]"+(wholestring.match(" $")?" ":"");
 			}
 		);
 	else
