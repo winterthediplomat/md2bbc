@@ -2,7 +2,7 @@
 // Showdown usage:
 //
 
-conv_opts = {
+var conv_opts = {
 	multiline_quoting: false,
 	check_quotes_into_lists: false,
 	recognize_bbcode: false,
@@ -29,9 +29,24 @@ var toggleautolinking = function(){
 	console.log("(un)checked, now ", conv_opts);
 }
 
-var shitconvert=function(){
+var shitconvert = function(){
 	console.log("converting with options: ", conv_opts);
+	var converter = new Showdown.converter(conv_opts);	
+}
+
+window.onload = function(){
 	var converter = new Showdown.converter(conv_opts);
-	document.getElementById("bb").value=converter.makeBBCode(document.getElementById('md').value);
-	return true;
+	var source = document.getElementById("md");
+	var target = document.getElementById("bb");
+	var options = document.body.getElementsByTagName('input');
+
+	source.addEventListener('keyup', function() {
+		target.value = converter.makeBBCode(md.value);
+	}, false);
+
+	for(var i = 0; i < options.length; ++i)
+		options[i].addEventListener('click', function() {
+			converter = new Showdown.converter(conv_opts);
+			target.value = converter.makeBBCode(md.value);
+		}, false);
 }
