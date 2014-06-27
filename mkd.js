@@ -41,12 +41,12 @@ window.onload = function(){
 	var options = document.body.getElementsByTagName('input');
 
 	source.addEventListener('keyup', function() {
-		target.value = converter.makeBBCode(md.value);
+		target.value = converter.makeBBCode(source.value);
 	}, false);
 
 	for(var i = 0; i < options.length; ++i)
 		options[i].addEventListener('click', function() {
 			converter = new Showdown.converter(conv_opts);
-			target.value = converter.makeBBCode(md.value);
+			target.value = converter.makeBBCode(source.value);
 		}, false);
 }
