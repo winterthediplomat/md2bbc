@@ -49,4 +49,7 @@ window.onload = function(){
 			converter = new Showdown.converter(conv_opts);
 			target.value = converter.makeBBCode(source.value);
 		}, false);
+
+	//automatically convert the actual text inside "md" textarea at page load.
+	target.value = converter.makeBBCode(source.value);
 }
