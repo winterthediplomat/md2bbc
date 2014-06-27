@@ -1,0 +1,106 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Markdown to BBCode converter</title>
+  <script type="text/javascript" src='./src/showdown.js'></script>
+  <script type="text/javascript" src='./mkd.js'></script>
+</head>
+<body>
+  Markdown to BBCode converter<br/>
+  <a href='SYNTAX.md'>Syntax reference (examples)</a>&nbsp;<a href='tests/test.html'>automated tests by QUnit.js</a>&nbsp;<a href="http://github.com/alfateam123/docs/tutorial.md">md2bbc tutorial</a>
+  <table>
+    <tr>
+      <td><textarea id='md' rows='30' cols='80'><http://en.wikipedia.org/wiki/SECD_abstract_machine>
+
+**WAHT IZ LOVE?** _baby don't hurt me! don't hurt me! no more_
+<http://www.youtube.com/watch?v=r4qmUpAE9o8>
+
+---
+
+* Asagi
+* Charlotte 
+* Tsurugi
+
+---
+
+more _cool tests_
+[math]\\sqrt-1 * \\frac{5}{b*2*3}-q_ad[/math]_
+[cur]**asd**[/cur]
+[url=http://google.com]<http://alfateam123.niggazwithattitu.de>[/url]
+
+[code=sh]
+find *.* | grep .torrent$
+[/code]
+
+```perl
+use Data::Dumper;
+print Dumper($val);
+for my $lol (@unrecognized){
+  #thenopeproject
+}
+print **lolololol**
+print "do you wanna use ` ?"; 
+print `find .`;
+
+```sh
+ls | grep html
+```
+
+>4chan
+>style
+>is triggered!
+not in the quote
+
+---
+
+>one
+two
+>three
+>four
+_five_
+**six**
+
+
+[small]lololol[/small]
+
+wtf -> lolpls
+
+> niconiconii pls
+stop saying niconiconii
+
+awful drawing here! ![it should be "alt"](http://31.media.tumblr.com/61c8bc1f8be79bf214c54688c7ed4377/tumblr_n4rhtwz7Bn1s825jqo1_1280.jpg)
+
+## bigbigbigbigbigbigbig
+### smallsmallsmallsmallsmallsmallsmall ###
+#### lolnope
+# biggah
+BIG
+---
+
+EQUALLY BIG
+===========
+
+
+> xp is
+> for old users
+> did you know that?
+
+lol
+
+<https://gist.github.com/alfateam123/7cc354929eb3d8817857>
+
+@alfateam123 #Nerdzilla
+
+~~you didn't see a thing~~</textarea></td>
+      <td><textarea id='bb' rows='30' cols='80'></textarea></td>
+    </tr>
+  </table>
+  <input type="checkbox" value="multiline quoting (4chan)" onclick="return togglemultiline();" /><a href="https://github.com/alfateam123/md2bbc/issues/2">multiline quoting</a></input>
+  <br />
+  <input type="checkbox" value="quotes into lists" onclick="return togglequotesintolists();" />quotes into lists</input>
+  <br />
+  <input type="checkbox" value="recognize bbcode" onclick="return togglebbcode();" />recognize bbcode</input>
+  <br />
+  <input type="checkbox" value="enable autolinking" onclick="return toggleautolinking();" />enable autolinking</input>
+</body>
+</html>
